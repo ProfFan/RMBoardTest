@@ -47,7 +47,32 @@ set(SOURCE_FILES ${USER_SOURCES} ${RTOS_SOURCES} ${HAL_SOURCES} ${CMSIS_SYSTEM} 
 
 include_directories(${USER_INCLUDE} ${CMSIS_DEVICE_INCLUDE} ${CMSIS_INCLUDE} ${HAL_INCLUDE} ${RTOS_INCLUDE})
 
+# Rust executable
+add_custom_command(
+        OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/target/thumbv7em-none-eabihf/debug/librust32.a
+        COMMAND
+        CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/target xargo build --target thumbv7em-none-eabihf
+        WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        VERBATIM
+)
+
+add_custom_target(rust_target DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/target/thumbv7em-none-eabihf/debug/librust32.a)
+
+# create an library target out of the library compilation result
+add_library(demo STATIC IMPORTED GLOBAL)
+add_dependencies(demo rust_target)
+
+# specify where the library is and where to find the headers
+set_target_properties(demo
+        PROPERTIES
+        IMPORTED_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/target/thumbv7em-none-eabihf/debug/librust32.a)
+
+# END Rust
 add_executable(${PROJECT_NAME}.elf ${SOURCE_FILES})
+
+TARGET_LINK_LIBRARIES(${CMAKE_PROJECT_NAME}.elf demo)
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-Map=${PROJECT_SOURCE_DIR}/build/${PROJECT_NAME}.map")
 set(HEX_FILE ${PROJECT_SOURCE_DIR}/build/${PROJECT_NAME}.hex)
