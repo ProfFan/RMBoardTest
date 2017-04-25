@@ -54,7 +54,7 @@ add_custom_command(
         COMMAND
         CARGO_TARGET_DIR=${CMAKE_CURRENT_BINARY_DIR}/target xargo build --target thumbv7em-none-eabihf
         WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/rust
         VERBATIM
 )
 

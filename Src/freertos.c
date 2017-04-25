@@ -54,7 +54,7 @@
 osThreadId defaultTaskHandle;
 
 /* USER CODE BEGIN Variables */
-
+extern int32_t rust_main(int32_t _argc, char** _argv);
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -110,7 +110,11 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
     //HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-    HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+    if(rust_main(0, NULL)==1344){
+      HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+    } else {
+      HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+    }
     osDelay(500);
   }
   /* USER CODE END StartDefaultTask */

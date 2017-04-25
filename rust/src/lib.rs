@@ -9,7 +9,7 @@ use core::intrinsics;
 // Entry point for this program.
 #[no_mangle] // ensure that this symbol is called `main` in the output
 pub extern fn rust_main(_argc: i32, _argv: *const *const u8) -> i32 {
-    0
+    1344
 }
 
 // These functions are used by the compiler, but not
