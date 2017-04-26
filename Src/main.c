@@ -111,8 +111,6 @@ int main(void)
   MX_RTC_Init();
 
   /* USER CODE BEGIN 2 */
-  HAL_GPIO_TogglePin(BEEP_GPIO_Port, BEEP_Pin);
-  HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
 
   /* USER CODE END 2 */
 

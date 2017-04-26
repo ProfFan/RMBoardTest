@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["Fan Jiang <i@fanjiang.me>"]
 
 [dependencies]
+spin = "0.4.5"
 
 [lib]
 crate-type = ["staticlib"]

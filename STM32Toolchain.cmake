@@ -5,6 +5,8 @@ set(CMAKE_SYSTEM_VERSION 1)
 
 CMAKE_FORCE_C_COMPILER(arm-none-eabi-gcc GCC)
 CMAKE_FORCE_CXX_COMPILER(arm-none-eabi-g++ GCC)
+set(CMAKE_ASM_COMPILER arm-none-eabi-as)
+
 set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 
 set(COMMON_FLAGS "-mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -lc -specs=nosys.specs -mthumb -mthumb-interwork -ffunction-sections -fdata-sections -g -fno-common -fmessage-length=0")

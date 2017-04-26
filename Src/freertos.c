@@ -109,12 +109,13 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    //HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-    if(rust_main(0, NULL)==1344){
-      HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-    } else {
-      HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-    }
+    // if(rust_main(0, NULL)==1344){
+    //   HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+    // } else {
+    //   HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+    // }
+    rust_main(0, NULL);
+    
     osDelay(500);
   }
   /* USER CODE END StartDefaultTask */
