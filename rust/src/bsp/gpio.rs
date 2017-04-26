@@ -4,6 +4,7 @@ use reg;
 
 #[repr(u32)]
 pub enum Port {
+    PortE = reg::GPIOE_BASE,
     PortF = reg::GPIOF_BASE,
 }
 

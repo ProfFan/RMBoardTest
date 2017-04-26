@@ -24,11 +24,13 @@ static mut state: i32 = 0;
 pub extern "C" fn rust_main(_argc: i32, _argv: *const *const u8) -> i32 {
     unsafe {
         if (state == 0) {
+            gpio::writePin(gpio::Port::PortE, gpio::Pin::Pin7, gpio::PinState::Set);
             gpio::writePin(gpio::Port::PortF, gpio::Pin::Pin14, gpio::PinState::Set);
             unsafe {
                 state = 1;
             }
         } else {
+            gpio::writePin(gpio::Port::PortE, gpio::Pin::Pin7, gpio::PinState::Reset);
             gpio::writePin(gpio::Port::PortF, gpio::Pin::Pin14, gpio::PinState::Reset);
             unsafe {
                 state = 0;
