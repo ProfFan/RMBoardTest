@@ -1,0 +1,13 @@
+[package]
+authors = ["Fan Jiang <i@fanjiang.me>"]
+description = "Peripheral access API for STM32F427x microcontrollers"
+documentation = "https://docs.rs/stm32f427x"
+keywords = ["no-std", "arm", "cortex-m", "stm32"]
+license = "MIT OR Apache-2.0"
+name = "stm32f427x"
+repository = "https://github.com/ProfFan/stm32f427x"
+version = "0.1.0"
+
+[dependencies]
+cortex-m = "0.2.4"
+vcell = "0.1.0"

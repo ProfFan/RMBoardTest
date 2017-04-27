@@ -5,6 +5,8 @@ authors = ["Fan Jiang <i@fanjiang.me>"]
 
 [dependencies]
 spin = "0.4.5"
+stm32f427x = { path = "stm32f427x" }
+cortex-m = "0.2.4"
 
 [lib]
 crate-type = ["staticlib"]

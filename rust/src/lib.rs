@@ -1,5 +1,9 @@
 #![feature(lang_items, core_intrinsics)]
 #![feature(start)]
+#![feature(asm)]
+#![feature(lang_items)]
+#![feature(macro_reexport)]
+#![feature(naked_functions)]
 #![no_std]
 
 #![crate_type="staticlib"]
@@ -13,9 +17,13 @@ use bsp::gpio;
 extern crate spin;
 use spin::Mutex;
 
-// pub static StateWriter: Mutex<i32> = Mutex::new(i32 {
-//     0
-// });
+#[macro_use]
+extern crate cortex_m;
+
+pub extern crate stm32f427x as peripheral;
+
+
+// pub static StateWriter: Mutex<i32> = Mutex::new(i32);
 
 static mut state: i32 = 0;
 
@@ -23,7 +31,7 @@ static mut state: i32 = 0;
 #[no_mangle] // ensure that this symbol is called `main` in the output
 pub extern "C" fn rust_main(_argc: i32, _argv: *const *const u8) -> i32 {
     unsafe {
-        if (state == 0) {
+        if state == 0 {
             gpio::writePin(gpio::Port::PortE, gpio::Pin::Pin7, gpio::PinState::Set);
             gpio::writePin(gpio::Port::PortF, gpio::Pin::Pin14, gpio::PinState::Set);
             unsafe {
@@ -54,9 +62,10 @@ pub extern "C" fn rust_eh_unwind_resume() {}
 
 #[lang = "panic_fmt"]
 #[no_mangle]
-pub extern "C" fn rust_begin_panic(_msg: core::fmt::Arguments,
-                                   _file: &'static str,
-                                   _line: u32)
-                                   -> ! {
-    unsafe { intrinsics::abort() }
+pub extern fn panic_fmt(fmt: core::fmt::Arguments, file: &'static str,
+    line: u32) -> !
+{
+    // iprintln!("\n\nPANIC in {} at line {}:", file, line);
+    // iprintln!("    {}", fmt);
+    loop{}
 }
