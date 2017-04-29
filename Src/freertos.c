@@ -42,6 +42,7 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
+#include <bsp/beeper.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "cmsis_os.h"
@@ -49,6 +50,8 @@
 /* USER CODE BEGIN Includes */     
 #include "gpio.h"
 #include "tim.h"
+
+#include "bsp/beeper.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
@@ -56,16 +59,13 @@ osThreadId defaultTaskHandle;
 
 /* USER CODE BEGIN Variables */
 extern int32_t rust_main(int32_t _argc, char** _argv);
+extern osThreadId beepTaskHandle;
 
-osThreadId beepTaskHandle;
+osThreadDef(beepTask, StartBeepTask, osPriorityNormal, 0, 128);
 
-int currentBeep = 0;
-const uint16_t note_arr_tab[] = {
-    //382, 341, 303, 286, 255, 227, 202, // Low C
-    191, 170, 152, 143, 128, 114, 101, // Mid C
-    // 96, 85, 76, 72, 64, 57, 51,        // Hi  C
-};
-const note_count = sizeof(note_arr_tab) / sizeof(*note_arr_tab);
+extern QueueHandle_t beepQueue;
+
+Note_t currNote;
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -74,8 +74,6 @@ void StartDefaultTask(void const * argument);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /* USER CODE BEGIN FunctionPrototypes */
-
-void StartBeepTask(void const * argument);
 
 /* USER CODE END FunctionPrototypes */
 
@@ -106,7 +104,6 @@ void MX_FREERTOS_Init(void) {
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  osThreadDef(beepTask, StartBeepTask, osPriorityNormal, 0, 128);
   beepTaskHandle = osThreadCreate(osThread(beepTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
@@ -120,42 +117,20 @@ void StartDefaultTask(void const * argument)
 {
 
   /* USER CODE BEGIN StartDefaultTask */
-
+  currNote.duration = 200;
+  currNote.pitch = 0;
   /* Infinite loop */
   for(;;)
   {
-    // if(rust_main(0, NULL)==1344){
-    //   HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
-    // } else {
-    //   HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
-    // }
     rust_main(0, NULL);
+    currNote.pitch=(short)((currNote.pitch>6)?0:(currNote.pitch+1));
+    // xQueueSend(beepQueue, &currNote, 0);
     osDelay(500);
   }
   /* USER CODE END StartDefaultTask */
 }
 
 /* USER CODE BEGIN Application */
-
-void StartBeepTask(void const * argument)
-{
-  HAL_TIM_Base_Start(&htim3);
-  HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
-  /* Infinite loop */
-  for(;;)
-  {
-    if(currentBeep>6) {
-      __HAL_TIM_SET_AUTORELOAD(&htim3, 1);
-      __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
-      vTaskSuspend(beepTaskHandle);
-    }
-    currentBeep=(currentBeep<note_count)?currentBeep:0;
-    __HAL_TIM_SET_AUTORELOAD(&htim3, note_arr_tab[currentBeep]);
-    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, note_arr_tab[currentBeep]/10);
-    currentBeep++;
-    osDelay(300);
-  }
-}
 
 /* USER CODE END Application */
 
