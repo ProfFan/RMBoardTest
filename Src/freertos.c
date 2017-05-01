@@ -52,6 +52,7 @@
 #include "usbd_cdc_if.h"
 #include "bsp/beeper.h"
 #include "bsp/serial.h"
+#include "bsp/sbus.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
@@ -61,6 +62,7 @@ osThreadId defaultTaskHandle;
 extern int32_t rust_main(int32_t _argc, char** _argv);
 extern osThreadId beepTaskHandle;
 extern osThreadId serialTaskHandle;
+extern osThreadId sbusTaskHandle;
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -103,8 +105,11 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(beepTask, StartBeepTask, osPriorityNormal, 0, 128);
   beepTaskHandle = osThreadCreate(osThread(beepTask), NULL);
   
-  osThreadDef(serialTask, StartSerialTask, osPriorityHigh, 0, 256);
+  osThreadDef(serialTask, StartSerialTask, osPriorityHigh, 0, 512);
   serialTaskHandle = osThreadCreate(osThread(serialTask), NULL);
+
+  osThreadDef(sbusTask, StartSBUSTask, osPriorityHigh, 0, 256);
+  sbusTaskHandle = osThreadCreate(osThread(sbusTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
