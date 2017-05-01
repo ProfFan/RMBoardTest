@@ -125,11 +125,11 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
     currNote.pitch=(short)((currNote.pitch>6)?0:(currNote.pitch+1));
-    uint8_t str[] = "Hello!\n";
-    // xQueueSend(beepQueue, &currNote, 0);
-    //if(USBD_OK == CDC_Transmit_FS(str, sizeof(str))){
-    //  rust_main(0, NULL);
-    //}
+    uint8_t str[] = "\033[1;31mHello!\033[0m\r\n";
+    if(USBD_OK == CDC_Transmit_FS(str, sizeof(str))){
+      rust_main(0, NULL);
+      xQueueSend(beepQueue, &currNote, 0);
+    }
     osDelay(500);
   }
   /* USER CODE END StartDefaultTask */

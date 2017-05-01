@@ -15,7 +15,7 @@ set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 
 set(CMAKE_CXX_FLAGS "${COMMON_FLAGS} -std=c++11")
 set(CMAKE_C_FLAGS "${COMMON_FLAGS} -std=gnu99")
-set(CMAKE_EXE_LINKER_FLAGS "-mcpu=cortex-m4 -mthumb -T ${CMAKE_SOURCE_DIR}/STM32F427IIHx_FLASH.ld")
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--gc-sections -mcpu=cortex-m4 -mthumb -T ${CMAKE_SOURCE_DIR}/STM32F427IIHx_FLASH.ld")
 
 set(USER_INCLUDE Inc)
 set(BSP_INCLUDE bsp/include)
