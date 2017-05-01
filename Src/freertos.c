@@ -61,9 +61,6 @@ osThreadId defaultTaskHandle;
 extern int32_t rust_main(int32_t _argc, char** _argv);
 extern osThreadId beepTaskHandle;
 extern osThreadId serialTaskHandle;
-osThreadDef(beepTask, StartBeepTask, osPriorityNormal, 0, 128);
-
-osThreadDef(serialTask, StartSerialTask, osPriorityAboveNormal, 0, 256);
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -103,7 +100,10 @@ void MX_FREERTOS_Init(void) {
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
+  osThreadDef(beepTask, StartBeepTask, osPriorityNormal, 0, 128);
   beepTaskHandle = osThreadCreate(osThread(beepTask), NULL);
+  
+  osThreadDef(serialTask, StartSerialTask, osPriorityHigh, 0, 256);
   serialTaskHandle = osThreadCreate(osThread(serialTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
