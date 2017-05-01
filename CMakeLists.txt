@@ -23,6 +23,8 @@ set(MAVLINK_INCLUDE mavlink)
 set(CMSIS_DEVICE_INCLUDE Drivers/CMSIS/Device/ST/STM32F4xx/Include)
 set(CMSIS_INCLUDE Drivers/CMSIS/Include)
 set(HAL_INCLUDE Drivers/STM32F4xx_HAL_Driver/Inc)
+set(USBD_INCLUDE Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc
+    Middlewares/ST/STM32_USB_Device_Library/Core/Inc)
 set(RTOS_INCLUDE Middlewares/Third_Party/FreeRTOS/Source/include
     Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
     Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS)
@@ -33,6 +35,8 @@ file(GLOB_RECURSE MAVLINK_INCLUDE_F ${MAVLINK_INCLUDE}/**.h)
 file(GLOB_RECURSE CMSIS_DEVICE_INCLUDE_F ${CMSIS_DEVICE_INCLUDE}/*.h)
 file(GLOB_RECURSE CMSIS_INCLUDE_F ${CMSIS_INCLUDE}/*.h)
 file(GLOB_RECURSE HAL_INCLUDE_F ${HAL_INCLUDE}/*.h)
+file(GLOB_RECURSE USBD_INCLUDE_F Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/*.h
+        Middlewares/ST/STM32_USB_Device_Library/Core/Inc/*.h)
 file(GLOB_RECURSE RTOS_INCLUDE_F ${RTOS_INCLUDE}/*.h
      Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/*.h
      Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/*.h)
@@ -42,15 +46,17 @@ file(GLOB_RECURSE BSP_SOURCES bsp/src/*.c)
 file(GLOB_RECURSE HAL_SOURCES Drivers/STM32F4xx_HAL_DRIVER/Src/*.c)
 file(GLOB_RECURSE CMSIS_SYSTEM Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/system_STM32F4xx.c)
 file(GLOB_RECURSE CMSIS_STARTUP startup/startup_stm32f427xx.s)
+file(GLOB_RECURSE USBD_SOURCES Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/*.c
+        Middlewares/ST/STM32_USB_Device_Library/Core/Src/*.c)
 file(GLOB_RECURSE RTOS_SOURCES Middlewares/Third_Party/FreeRTOS/Source/*.c
      Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1/*.c
      Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/*.c
      Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/*.c)
 
-set(SOURCE_FILES ${USER_SOURCES} ${BSP_SOURCES} ${RTOS_SOURCES} ${HAL_SOURCES} ${CMSIS_SYSTEM} ${CMSIS_STARTUP} STM32F427IIHx_FLASH.ld
-                 ${USER_INCLUDE_F} ${BSP_INCLUDE_F} ${MAVLINK_INCLUDE_F} ${CMSIS_DEVICE_INCLUDE_F} ${CMSIS_INCLUDE_F} ${HAL_INCLUDE_F})
+set(SOURCE_FILES ${USER_SOURCES} ${BSP_SOURCES} ${RTOS_SOURCES} ${USBD_SOURCES} ${HAL_SOURCES} ${CMSIS_SYSTEM} ${CMSIS_STARTUP} STM32F427IIHx_FLASH.ld
+                 ${USER_INCLUDE_F} ${BSP_INCLUDE_F} ${MAVLINK_INCLUDE_F} ${USBD_INCLUDE_F} ${CMSIS_DEVICE_INCLUDE_F} ${CMSIS_INCLUDE_F} ${HAL_INCLUDE_F})
 
-include_directories(${USER_INCLUDE} ${BSP_INCLUDE} ${MAVLINK_INCLUDE} ${CMSIS_DEVICE_INCLUDE} ${CMSIS_INCLUDE} ${HAL_INCLUDE} ${RTOS_INCLUDE})
+include_directories(${USER_INCLUDE} ${BSP_INCLUDE} ${MAVLINK_INCLUDE} ${CMSIS_DEVICE_INCLUDE} ${CMSIS_INCLUDE} ${USBD_INCLUDE} ${HAL_INCLUDE} ${RTOS_INCLUDE})
 
 # Rust executable
 add_custom_command(

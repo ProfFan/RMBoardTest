@@ -1,7 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
+  * @file           : usbd_desc.h
+  * @version        : v1.0_Cube
+  * @brief          : Header for usbd_desc file.
   ******************************************************************************
   *
   * Copyright (c) 2017 STMicroelectronics International N.V. 
@@ -39,104 +40,75 @@
   * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
+*/
+
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __USBD_DESC__H__
+#define __USBD_DESC__H__
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+/* Includes ------------------------------------------------------------------*/
+#include "usbd_def.h"
+
+/** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
+  * @{
+  */
+  
+/** @defgroup USB_DESC
+  * @brief general defines for the usb device library file
+  * @{
+  */ 
+
+/** @defgroup USB_DESC_Exported_Defines
+  * @{
   */
 
-/* Includes ------------------------------------------------------------------*/
-#include "FreeRTOS.h"
-#include "task.h"
-#include "cmsis_os.h"
+/**
+  * @}
+  */ 
 
-/* USER CODE BEGIN Includes */     
-#include "gpio.h"
-#include "tim.h"
-#include "usbd_cdc_if.h"
-#include "bsp/beeper.h"
-/* USER CODE END Includes */
+/** @defgroup USBD_DESC_Exported_TypesDefinitions
+  * @{
+  */
+/**
+  * @}
+  */ 
 
-/* Variables -----------------------------------------------------------------*/
-osThreadId defaultTaskHandle;
+/** @defgroup USBD_DESC_Exported_Macros
+  * @{
+  */ 
+/**
+  * @}
+  */ 
 
-/* USER CODE BEGIN Variables */
-extern int32_t rust_main(int32_t _argc, char** _argv);
-extern osThreadId beepTaskHandle;
+/** @defgroup USBD_DESC_Exported_Variables
+  * @{
+  */ 
+extern USBD_DescriptorsTypeDef FS_Desc;
+/**
+  * @}
+  */ 
 
-osThreadDef(beepTask, StartBeepTask, osPriorityNormal, 0, 128);
-
-extern QueueHandle_t beepQueue;
-
-Note_t currNote;
-/* USER CODE END Variables */
-
-/* Function prototypes -------------------------------------------------------*/
-void StartDefaultTask(void const * argument);
-
-extern void MX_USB_DEVICE_Init(void);
-void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
-
-/* USER CODE BEGIN FunctionPrototypes */
-
-/* USER CODE END FunctionPrototypes */
-
-/* Hook prototypes */
-
-/* Init FreeRTOS */
-
-void MX_FREERTOS_Init(void) {
-  /* USER CODE BEGIN Init */
-       
-  /* USER CODE END Init */
-
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-  beepTaskHandle = osThreadCreate(osThread(beepTask), NULL);
-  /* USER CODE END RTOS_THREADS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
+/** @defgroup USBD_DESC_Exported_FunctionsPrototype
+  * @{
+  */ 
+  
+/**
+  * @}
+  */ 
+#ifdef __cplusplus
 }
+#endif
 
-/* StartDefaultTask function */
-void StartDefaultTask(void const * argument)
-{
-  /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
+#endif /* __USBD_DESC_H */
 
-  /* USER CODE BEGIN StartDefaultTask */
-  currNote.duration = 200;
-  currNote.pitch = 0;
-  /* Infinite loop */
-  for(;;)
-  {
-    currNote.pitch=(short)((currNote.pitch>6)?0:(currNote.pitch+1));
-    uint8_t str[] = "Hello!\n";
-    // xQueueSend(beepQueue, &currNote, 0);
-    //if(USBD_OK == CDC_Transmit_FS(str, sizeof(str))){
-    //  rust_main(0, NULL);
-    //}
-    osDelay(500);
-  }
-  /* USER CODE END StartDefaultTask */
-}
+/**
+  * @}
+  */ 
 
-/* USER CODE BEGIN Application */
-
-/* USER CODE END Application */
-
+/**
+* @}
+*/ 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

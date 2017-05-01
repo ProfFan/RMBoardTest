@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
-  * File Name          : freertos.c
-  * Description        : Code for freertos applications
+  * @file           : usbd_cdc_if.h
+  * @brief          : Header for usbd_cdc_if file.
   ******************************************************************************
   *
   * Copyright (c) 2017 STMicroelectronics International N.V. 
@@ -39,104 +39,94 @@
   * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
-  */
+*/
 
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __USBD_CDC_IF_H
+#define __USBD_CDC_IF_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
 /* Includes ------------------------------------------------------------------*/
-#include "FreeRTOS.h"
-#include "task.h"
-#include "cmsis_os.h"
+#include "usbd_cdc.h"
+/* USER CODE BEGIN INCLUDE */
+/* USER CODE END INCLUDE */
 
-/* USER CODE BEGIN Includes */     
-#include "gpio.h"
-#include "tim.h"
-#include "usbd_cdc_if.h"
-#include "bsp/beeper.h"
-/* USER CODE END Includes */
+/** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
+  * @{
+  */
+  
+/** @defgroup USBD_CDC_IF
+  * @brief header 
+  * @{
+  */ 
 
-/* Variables -----------------------------------------------------------------*/
-osThreadId defaultTaskHandle;
+/** @defgroup USBD_CDC_IF_Exported_Defines
+  * @{
+  */ 
+/* USER CODE BEGIN EXPORTED_DEFINES */
+/* USER CODE END EXPORTED_DEFINES */
 
-/* USER CODE BEGIN Variables */
-extern int32_t rust_main(int32_t _argc, char** _argv);
-extern osThreadId beepTaskHandle;
+/**
+  * @}
+  */ 
 
-osThreadDef(beepTask, StartBeepTask, osPriorityNormal, 0, 128);
+/** @defgroup USBD_CDC_IF_Exported_Types
+  * @{
+  */  
+/* USER CODE BEGIN EXPORTED_TYPES */
+/* USER CODE END EXPORTED_TYPES */
 
-extern QueueHandle_t beepQueue;
+/**
+  * @}
+  */ 
 
-Note_t currNote;
-/* USER CODE END Variables */
+/** @defgroup USBD_CDC_IF_Exported_Macros
+  * @{
+  */ 
+/* USER CODE BEGIN EXPORTED_MACRO */
+/* USER CODE END EXPORTED_MACRO */
 
-/* Function prototypes -------------------------------------------------------*/
-void StartDefaultTask(void const * argument);
+/**
+  * @}
+  */ 
 
-extern void MX_USB_DEVICE_Init(void);
-void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
+/** @defgroup USBD_AUDIO_IF_Exported_Variables
+  * @{
+  */ 
+extern USBD_CDC_ItfTypeDef  USBD_Interface_fops_FS;
 
-/* USER CODE BEGIN FunctionPrototypes */
+/* USER CODE BEGIN EXPORTED_VARIABLES */
+/* USER CODE END EXPORTED_VARIABLES */
 
-/* USER CODE END FunctionPrototypes */
+/**
+  * @}
+  */ 
 
-/* Hook prototypes */
+/** @defgroup USBD_CDC_IF_Exported_FunctionsPrototype
+  * @{
+  */ 
+uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 
-/* Init FreeRTOS */
+/* USER CODE BEGIN EXPORTED_FUNCTIONS */
+/* USER CODE END EXPORTED_FUNCTIONS */
+/**
+  * @}
+  */ 
 
-void MX_FREERTOS_Init(void) {
-  /* USER CODE BEGIN Init */
-       
-  /* USER CODE END Init */
+/**
+  * @}
+  */ 
 
-  /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
-  /* USER CODE END RTOS_MUTEX */
-
-  /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
-  /* USER CODE END RTOS_SEMAPHORES */
-
-  /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
-  /* USER CODE END RTOS_TIMERS */
-
-  /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
-
-  /* USER CODE BEGIN RTOS_THREADS */
-  beepTaskHandle = osThreadCreate(osThread(beepTask), NULL);
-  /* USER CODE END RTOS_THREADS */
-
-  /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-  /* USER CODE END RTOS_QUEUES */
+/**
+  * @}
+  */ 
+  
+#ifdef __cplusplus
 }
-
-/* StartDefaultTask function */
-void StartDefaultTask(void const * argument)
-{
-  /* init code for USB_DEVICE */
-  MX_USB_DEVICE_Init();
-
-  /* USER CODE BEGIN StartDefaultTask */
-  currNote.duration = 200;
-  currNote.pitch = 0;
-  /* Infinite loop */
-  for(;;)
-  {
-    currNote.pitch=(short)((currNote.pitch>6)?0:(currNote.pitch+1));
-    uint8_t str[] = "Hello!\n";
-    // xQueueSend(beepQueue, &currNote, 0);
-    //if(USBD_OK == CDC_Transmit_FS(str, sizeof(str))){
-    //  rust_main(0, NULL);
-    //}
-    osDelay(500);
-  }
-  /* USER CODE END StartDefaultTask */
-}
-
-/* USER CODE BEGIN Application */
-
-/* USER CODE END Application */
+#endif
+  
+#endif /* __USBD_CDC_IF_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
