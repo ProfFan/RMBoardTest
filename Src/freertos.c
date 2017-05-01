@@ -51,6 +51,7 @@
 #include "tim.h"
 #include "usbd_cdc_if.h"
 #include "bsp/beeper.h"
+#include "bsp/serial.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
@@ -59,12 +60,10 @@ osThreadId defaultTaskHandle;
 /* USER CODE BEGIN Variables */
 extern int32_t rust_main(int32_t _argc, char** _argv);
 extern osThreadId beepTaskHandle;
-
+extern osThreadId serialTaskHandle;
 osThreadDef(beepTask, StartBeepTask, osPriorityNormal, 0, 128);
 
-extern QueueHandle_t beepQueue;
-
-Note_t currNote;
+osThreadDef(serialTask, StartSerialTask, osPriorityAboveNormal, 0, 256);
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -105,6 +104,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   beepTaskHandle = osThreadCreate(osThread(beepTask), NULL);
+  serialTaskHandle = osThreadCreate(osThread(serialTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -119,17 +119,12 @@ void StartDefaultTask(void const * argument)
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN StartDefaultTask */
-  currNote.duration = 200;
-  currNote.pitch = 0;
+
   /* Infinite loop */
   for(;;)
   {
-    currNote.pitch=(short)((currNote.pitch>6)?0:(currNote.pitch+1));
-    uint8_t str[] = "\033[1;31mHello!\033[0m\r\n";
-    if(USBD_OK == CDC_Transmit_FS(str, sizeof(str))){
-      rust_main(0, NULL);
-      xQueueSend(beepQueue, &currNote, 0);
-    }
+    rust_main(0, NULL);
+
     osDelay(500);
   }
   /* USER CODE END StartDefaultTask */
