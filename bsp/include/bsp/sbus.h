@@ -11,10 +11,10 @@
 #define SBUS_DMA_BUFFER_SIZE 64
 
 typedef struct {
-  int16_t CH1:11;  //each ch value from -364 -- +364
-  int16_t CH2:11;
-  int16_t CH3:11;
-  int16_t CH4:11;
+  uint16_t CH1:11;  //each ch value from -364 -- +364
+  uint16_t CH2:11;
+  uint16_t CH3:11;
+  uint16_t CH4:11;
 
   uint8_t SW1:2;  //3 value
   uint8_t SW2:2;
