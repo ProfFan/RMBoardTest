@@ -73,8 +73,10 @@ void SBUS_Rx_Init(UART_HandleTypeDef* huart){
   UART_Receive_DMA_No_IT(huart, sbus_buffer, SBUS_DMA_BUFFER_SIZE);
 }
 void StartSBUSTask(void const *argument){
-  SBUS_Rx_Init(&huart1);
   for(;;){
+    if(HAL_UART_GetState(&huart1) == HAL_UART_STATE_READY){
+      SBUS_Rx_Init(&huart1);
+    }
     osDelay(500);
   }
 }

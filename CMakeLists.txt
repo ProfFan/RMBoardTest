@@ -2,7 +2,7 @@ set(MCU_FAMILY STM32F4xx)
 set(CMAKE_TOOLCHAIN_FILE STM32Toolchain.cmake)
 cmake_minimum_required(VERSION 3.6)
 
-project(chassis C ASM)
+project(chassis C CXX ASM)
 
 add_definitions(-DSTM32F427xx)
 add_definitions(-DUSE_HAL_LIBRARY)
@@ -30,19 +30,21 @@ set(RTOS_INCLUDE Middlewares/Third_Party/FreeRTOS/Source/include
     Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS)
 
 file(GLOB_RECURSE USER_INCLUDE_F ${USER_INCLUDE}/*.h)
-file(GLOB_RECURSE BSP_INCLUDE_F ${BSP_INCLUDE}/**.h)
+file(GLOB_RECURSE BSP_INCLUDE_F ${BSP_INCLUDE}/**.h
+     ${BSP_INCLUDE}/**.hpp)
 file(GLOB_RECURSE MAVLINK_INCLUDE_F ${MAVLINK_INCLUDE}/**.h)
 file(GLOB_RECURSE CMSIS_DEVICE_INCLUDE_F ${CMSIS_DEVICE_INCLUDE}/*.h)
 file(GLOB_RECURSE CMSIS_INCLUDE_F ${CMSIS_INCLUDE}/*.h)
 file(GLOB_RECURSE HAL_INCLUDE_F ${HAL_INCLUDE}/*.h)
 file(GLOB_RECURSE USBD_INCLUDE_F Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc/*.h
-        Middlewares/ST/STM32_USB_Device_Library/Core/Inc/*.h)
+     Middlewares/ST/STM32_USB_Device_Library/Core/Inc/*.h)
 file(GLOB_RECURSE RTOS_INCLUDE_F ${RTOS_INCLUDE}/*.h
      Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/*.h
      Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/*.h)
 
 file(GLOB_RECURSE USER_SOURCES Src/*.c)
-file(GLOB_RECURSE BSP_SOURCES bsp/src/*.c)
+file(GLOB_RECURSE BSP_SOURCES bsp/src/*.c
+     bsp/src/*.cpp)
 file(GLOB_RECURSE HAL_SOURCES Drivers/STM32F4xx_HAL_DRIVER/Src/*.c)
 file(GLOB_RECURSE CMSIS_SYSTEM Drivers/CMSIS/Device/ST/STM32F4xx/Source/Templates/system_STM32F4xx.c)
 file(GLOB_RECURSE CMSIS_STARTUP startup/startup_stm32f427xx.s)

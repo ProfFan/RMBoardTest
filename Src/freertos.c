@@ -47,12 +47,11 @@
 #include "cmsis_os.h"
 
 /* USER CODE BEGIN Includes */     
-#include "gpio.h"
-#include "tim.h"
 #include "usbd_cdc_if.h"
 #include "bsp/beeper.h"
 #include "bsp/serial.h"
 #include "bsp/sbus.h"
+#include "bsp/hptimer.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
@@ -129,7 +128,7 @@ void StartDefaultTask(void const * argument)
   for(;;)
   {
     rust_main(0, NULL);
-
+    GetCycleCount64();
     osDelay(500);
   }
   /* USER CODE END StartDefaultTask */
