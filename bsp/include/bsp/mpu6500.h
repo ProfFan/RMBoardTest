@@ -119,6 +119,42 @@
 #define MPU_IIC_ADDR								0x68
 
 #endif
+
+#ifndef __IST8310_REG__
+#define IST8310_ADDRESS 0x0E
+#define IST8310_DEVICE_ID_A 0x10
+
+// IST8310 register map. For details see IST8310 datasheet
+#define IST8310_WHO_AM_I 0x00
+#define IST8310_R_CONFA 0x0A
+#define IST8310_R_CONFB 0x0B
+#define IST8310_R_MODE 0x02
+
+#define IST8310_R_XL 0x03
+#define IST8310_R_XM 0x04
+#define IST8310_R_YL 0x05
+#define IST8310_R_YM 0x06
+#define IST8310_R_ZL 0x07
+#define IST8310_R_ZM 0x08
+
+#define IST8310_AVGCNTL 0x41
+#define IST8310_PDCNTL 0x42
+
+#define IST8310_ODR_MODE 0x01 //single measure mode
+
+#define IST8310_AVG_16 0x24
+
+#define IST8310_CNTRL2_RESET 0x01
+#define IST8310_CNTRL2_DRPOL 0x04
+#define IST8310_CNTRL2_DRENA 0x08
+
+#define IST8310_REG_CNTRL1 0x0A
+#define IST8310_REG_CNTRL2 0x0B
+#define IST8310_REG_AVERAGE 0x41
+
+
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -178,18 +214,20 @@ public:
   int initialize();
   void calibrate_gyro();
   void calibrate_accel();
-  void readGyroRaw();
-  void readAccelRaw();
   void readRawData();
-  void readAccelSum();
   void evaluateGyro();
   void evaluateAccel();
-  void readGyroTemperature();
   void setGyroRange(GyroRange range);
   void setAccelRange(AccelRange range);
+
   uint8_t writeReg(uint8_t addr, uint8_t value);
   uint8_t readReg(uint8_t addr);
   uint8_t readReg(uint8_t addr, uint8_t* buffer, uint16_t length);
+
+  void writeIST8310Reg(uint8_t addr, uint8_t data);
+  uint8_t readIST8310Reg(uint8_t addr);
+  void configureI2CAutoRead(uint8_t device_address, uint8_t reg_base_addr, uint8_t data_num);
+  int initIST8310();
 
   MPUData_t data;
 

@@ -4,6 +4,7 @@
 extern "C" {
 #include "FreeRTOS.h"
 #include "task.h"
+#include "math.h"
 #include "cmsis_os.h"
 #include "usbd_cdc_if.h"
 #include "bsp/serial.h"
@@ -11,8 +12,7 @@ extern "C" {
 #include "bsp/sbus.h"
 }
 
-#include <bsp/mpu6500.h>
-#include "bsp/mpu6500.h"
+#include "bsp/imu.h"
 
 osThreadId serialTaskHandle;
 
@@ -24,18 +24,15 @@ Note_t currNote;
 
 uint8_t print_buf[256];
 
-MPU6500 *mpu = new MPU6500(&hspi5);
+extern int resp;
 
-int resp;
-
+float yaw, pitch, roll;
 void StartSerialTask(void const *argument) {
   serialQueue = xQueueCreate(10, sizeof(uint8_t));
   currNote.duration = 200;
   currNote.pitch = 0;
-  resp = mpu->initialize();
   /* Infinite loop */
   for (;;) {
-    mpu->readRawData();
     currNote.pitch=(short)((currNote.pitch>6)?0:(currNote.pitch+1));
 
     int size;
@@ -43,8 +40,17 @@ void StartSerialTask(void const *argument) {
                    HAL_UART_GetState(&huart1), hsbus1.CH1 - 1024, hsbus1.CH2 - 1024, hsbus1.CH3 - 1024, hsbus1.CH4 - 1024);
     CDC_Transmit_FS(print_buf, size);
 
-    size = sprintf((char*)print_buf, "\033[KResp: %d, ID: 0x%2x Gx: %f, Gy: %f, Gz: %f, Temp: %f\r\n",
-                   resp, mpu->readReg(MPU6500_WHO_AM_I), mpu->data.ax, mpu->data.ay, mpu->data.az, mpu->data.temp);
+    float q[4];
+    memcpy(q, ahrs->q, sizeof(q));
+    yaw   = atan2(2.0f * (q[1] * q[2] + q[0] * q[3]), q[0] * q[0] + q[1] * q[1] - q[2] * q[2] - q[3] * q[3]);
+    pitch = -asin(2.0f * (q[1] * q[3] - q[0] * q[2]));
+    roll  = atan2(2.0f * (q[0] * q[1] + q[2] * q[3]), q[0] * q[0] - q[1] * q[1] - q[2] * q[2] + q[3] * q[3]);
+    pitch *= 180.0f / M_PI;
+    yaw   *= 180.0f / M_PI;
+    roll  *= 180.0f / M_PI;
+
+    size = sprintf((char*)print_buf, "\033[KGx: %f, Gy: %f, Gz: %f, Mx: %f, Ax: %f\r\n",
+                   pitch, roll, yaw, mpu->data.mx, mpu->data.ax);
     CDC_Transmit_FS(print_buf, size);
 
 //    if(USBD_OK == CDC_Transmit_FS(print_buf, size)){

@@ -24,6 +24,8 @@ extern "C" {
 #define MPU_NSS_LOW HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET)
 #define MPU_NSS_HIGH HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_SET)
 
+#define MPUDelay osDelay
+
 uint8_t txbuff[20] = {0xff};
 
 MPU6500::MPU6500(SPI_HandleTypeDef *spi) {
@@ -33,7 +35,7 @@ MPU6500::MPU6500(SPI_HandleTypeDef *spi) {
   port = spi;
 }
 
-uint8_t MPU6500::writeReg(uint8_t const addr, uint8_t value){
+uint8_t MPU6500::writeReg(uint8_t const addr, uint8_t value) {
   uint8_t txdata[2] = {addr & 0x7F, value};
   uint8_t rxdata[2];
   MPU_NSS_LOW;
@@ -42,16 +44,13 @@ uint8_t MPU6500::writeReg(uint8_t const addr, uint8_t value){
   return rxdata[2];
 }
 
-uint8_t MPU6500::readReg(uint8_t const addr){
-  uint8_t txdata[2] = {addr | 0x80, addr | 0x80};
-  uint8_t rxdata[2];
-  MPU_NSS_LOW;
-  HAL_SPI_TransmitReceive(port, txdata, rxdata, 2, 55);
-  MPU_NSS_HIGH;
-  return rxdata[2];
+uint8_t MPU6500::readReg(uint8_t const addr) {
+  uint8_t rxdata;
+  readReg(addr, &rxdata, 1);
+  return rxdata;
 }
 
-uint8_t MPU6500::readReg(uint8_t const addr, uint8_t* buffer, uint16_t length){
+uint8_t MPU6500::readReg(uint8_t const addr, uint8_t *buffer, uint16_t length) {
   uint8_t txdata = addr | 0x80;
   uint8_t rxdata;
   MPU_NSS_LOW;
@@ -63,14 +62,10 @@ uint8_t MPU6500::readReg(uint8_t const addr, uint8_t* buffer, uint16_t length){
   return rxdata;
 }
 
-void MPU6500::readGyroTemperature() {
-
-}
-
 void MPU6500::setAccelRange(AccelRange range) {
 
   // Accel scale factor = 9.81 m/s^2 / scale
-  switch(range){
+  switch (range) {
     case G_2:
       accelScaleFactor = 16384;
       break;
@@ -93,7 +88,7 @@ void MPU6500::setAccelRange(AccelRange range) {
 
 void MPU6500::setGyroRange(GyroRange range) {
 
-  switch(range){
+  switch (range) {
     case DPS_250:
       gyroScaleFactor = 131.0;
       break;
@@ -113,13 +108,128 @@ void MPU6500::setGyroRange(GyroRange range) {
   writeReg(MPU6500_GYRO_CONFIG, range << 3);
 }
 
-void MPU6500::readRawData(){
+void MPU6500::writeIST8310Reg(uint8_t addr, uint8_t data) {
+  writeReg(MPU6500_I2C_SLV1_CTRL, 0x00);
+  MPUDelay(100);
+  writeReg(MPU6500_I2C_SLV1_REG, addr);
+  MPUDelay(100);
+  writeReg(MPU6500_I2C_SLV1_DO, data);
+  MPUDelay(100);
+  // Enable SLV1 transmit
+  writeReg(MPU6500_I2C_SLV1_CTRL, 0x81);
+  MPUDelay(100);
+}
+
+uint8_t MPU6500::readIST8310Reg(uint8_t addr) {
+  uint8_t value;
+  MPUDelay(100);
+  writeReg(MPU6500_I2C_SLV0_REG, addr);
+  MPUDelay(100);
+  writeReg(MPU6500_I2C_SLV0_CTRL, 0x81);
+  MPUDelay(100);
+  value = readReg(MPU6500_EXT_SENS_DATA_00);
+  //turn off slave4 after read
+  MPUDelay(100);
+  return value;
+}
+
+void MPU6500::configureI2CAutoRead(uint8_t device_address, uint8_t reg_base_addr, uint8_t data_num) {
+  //configure the device address of the IST8310
+  //use slave1,auto transmit single measure mode.
+  writeReg(MPU6500_I2C_SLV1_ADDR, device_address);
+  MPUDelay(2);
+  writeReg(MPU6500_I2C_SLV1_REG, IST8310_R_CONFA);
+  MPUDelay(2);
+  writeReg(MPU6500_I2C_SLV1_DO, IST8310_ODR_MODE);
+  MPUDelay(2);
+
+  //use slave0,auto read data
+  writeReg(MPU6500_I2C_SLV0_ADDR, 0x80 | device_address);
+  MPUDelay(2);
+  writeReg(MPU6500_I2C_SLV0_REG, reg_base_addr);
+  MPUDelay(2);
+
+  //every eight mpu6500 internal samples one i2c master read
+  writeReg(MPU6500_I2C_SLV4_CTRL, 0x03);
+  MPUDelay(2);
+  //enable slave 0 and 1 access delay
+  writeReg(MPU6500_I2C_MST_DELAY_CTRL, 0x01 | 0x02);
+  MPUDelay(2);
+  //enable slave 1 auto transmit
+  writeReg(MPU6500_I2C_SLV1_CTRL, 0x80 | 0x01);
+  MPUDelay(6); //Wait 6ms (minimum waiting time for 16 times internal average setup)
+  //enable slave 0 with data_num bytes reading
+  writeReg(MPU6500_I2C_SLV0_CTRL, 0x80 | data_num);
+  MPUDelay(2);
+}
+
+int MPU6500::initIST8310() {
+
+  HAL_GPIO_WritePin(IST_RST_GPIO_Port, IST_RST_Pin, GPIO_PIN_RESET);
+
+  writeReg(MPU6500_USER_CTRL, 0x30); //enable iic passthrough mode
+  MPUDelay(10);
+  writeReg(MPU6500_I2C_MST_CTRL, 0x0d); //enable iic 400khz
+  MPUDelay(10);
+
+  HAL_GPIO_WritePin(IST_RST_GPIO_Port, IST_RST_Pin, GPIO_PIN_SET);
+
+  //turn on slave 1 for ist write and slave 4 to ist read
+  writeReg(MPU6500_I2C_SLV1_ADDR, IST8310_ADDRESS); //enable iic 400khz
+  MPUDelay(10);
+  writeReg(MPU6500_I2C_SLV4_ADDR, 0x80 | IST8310_ADDRESS); //enable iic 400khz
+  MPUDelay(10);
+  writeReg(MPU6500_I2C_SLV0_ADDR, 0x80 | IST8310_ADDRESS);
+  MPUDelay(40);
+  // IST8310_R_CONFB 0x01	= device rst
+  // writeIST8310Reg(IST8310_R_CONFB, 0x01); //soft rst
+  // MPUDelay(10);
+  if (IST8310_DEVICE_ID_A != readIST8310Reg(IST8310_WHO_AM_I))
+    return readIST8310Reg(IST8310_WHO_AM_I); //wrong
+    //return readReg(MPU6500_I2C_SLV0_CTRL);
+  writeIST8310Reg(IST8310_R_CONFB, 0x01); //rst
+  MPUDelay(10);
+
+  writeIST8310Reg(IST8310_R_CONFA, 0x00); //config as ready mode to access reg
+  if (readIST8310Reg(IST8310_R_CONFA) != 0x00)
+    return 2;
+  MPUDelay(10);
+
+  writeIST8310Reg(IST8310_R_CONFB, 0x00); //normal state, no int
+  if (readIST8310Reg(IST8310_R_CONFB) != 0x00)
+    return 3;
+  MPUDelay(10);
+  //config  low noise mode, x,y,z axis 16 time 1 avg,
+  writeIST8310Reg(IST8310_AVGCNTL, 0x24); //100100
+  if (readIST8310Reg(IST8310_AVGCNTL) != 0x24)
+    return 4;
+  MPUDelay(10);
+
+  //Set/Reset pulse duration setup,normal mode
+  writeIST8310Reg(IST8310_PDCNTL, 0xc0);
+  if (readIST8310Reg(IST8310_PDCNTL) != 0xc0)
+    return 5;
+  MPUDelay(10);
+
+  //turn off slave1 & slave 4
+  writeReg(MPU6500_I2C_SLV1_CTRL, 0x00);
+  MPUDelay(10);
+  writeReg(MPU6500_I2C_SLV4_CTRL, 0x00);
+  MPUDelay(10);
+
+  //configure and turn on slave 0
+  configureI2CAutoRead(IST8310_ADDRESS, IST8310_R_XL, 0x06);
+  MPUDelay(100);
+  return 0;
+}
+
+void MPU6500::readRawData() {
 
   readReg(MPU6500_ACCEL_XOUT_H, buffer, 14);
 
-  mpu_data.ax   = buffer[0] << 8 | buffer[1];
-  mpu_data.ay   = buffer[2] << 8 | buffer[3];
-  mpu_data.az   = buffer[4] << 8 | buffer[5];
+  mpu_data.ax = buffer[0] << 8 | buffer[1];
+  mpu_data.ay = buffer[2] << 8 | buffer[3];
+  mpu_data.az = buffer[4] << 8 | buffer[5];
 
   mpu_data.temp = buffer[6] << 8 | buffer[7];
 
@@ -128,13 +238,19 @@ void MPU6500::readRawData(){
   mpu_data.gz = buffer[12] << 8 | buffer[13];
 
   data.temp = 21 + mpu_data.temp / 333.87f;
-  data.wx   = mpu_data.gx / gyroScaleFactor * 0.0174533;
-  data.wy   = mpu_data.gy / gyroScaleFactor * 0.0174533;
-  data.wz   = mpu_data.gz / gyroScaleFactor * 0.0174533;
+  data.wx = mpu_data.gx / gyroScaleFactor * 0.0174533;
+  data.wy = mpu_data.gy / gyroScaleFactor * 0.0174533;
+  data.wz = mpu_data.gz / gyroScaleFactor * 0.0174533;
 
-  data.ax   = mpu_data.ax * 9.81 / accelScaleFactor;
-  data.ay   = mpu_data.ay * 9.81 / accelScaleFactor;
-  data.az   = mpu_data.az * 9.81 / accelScaleFactor;
+  data.ax = mpu_data.ax * 9.81 / accelScaleFactor;
+  data.ay = mpu_data.ay * 9.81 / accelScaleFactor;
+  data.az = mpu_data.az * 9.81 / accelScaleFactor;
+
+  readReg(MPU6500_EXT_SENS_DATA_00, (uint8_t *) &(mpu_data.mx), 6);
+
+  data.mx = mpu_data.mx * 0.003;
+  data.my = mpu_data.my * 0.003;
+  data.mz = mpu_data.mz * 0.003;
 
 }
 
@@ -145,17 +261,18 @@ int MPU6500::initialize() {
 //  }
 
   uint8_t MPU6500_Init_Data[10][2] = {
-      { MPU6500_PWR_MGMT_1, 0x80 }, // Reset Device
-      { MPU6500_PWR_MGMT_1, 0x03 }, // Clock Source - Gyro-Z
-      { MPU6500_PWR_MGMT_2, 0x00 }, // Enable Acc & Gyro
-      { MPU6500_CONFIG, 0x04 }, // LPF 41Hz//gyro bandwidth 41Hz
-      { MPU6500_GYRO_CONFIG, 0x18 }, // +-2000dps
-      { MPU6500_ACCEL_CONFIG, 0x10 }, // +-8G
-      { MPU6500_ACCEL_CONFIG_2, 0x02 }, // enable LowPassFilter  Set Acc LPF
-      { MPU6500_USER_CTRL, 0x20 }, // Enable AUX
+      {MPU6500_PWR_MGMT_1,     0x80}, // Reset Device
+      {MPU6500_PWR_MGMT_1,     0x01}, // Clock Source - Gyro-Z
+      {MPU6500_PWR_MGMT_2,     0x00}, // Enable Acc & Gyro
+      {MPU6500_CONFIG,         0x01}, // LPF 188Hz
+      {MPU6500_SMPLRT_DIV,     0x00}, // 1000Hz sampling rate
+      {MPU6500_GYRO_CONFIG,    0x18}, // +-2000dps
+      {MPU6500_ACCEL_CONFIG,   0x10}, // +-8G
+      {MPU6500_ACCEL_CONFIG_2, 0x02}, // enable ACC LPF
+      {MPU6500_USER_CTRL,      0x20}, // Enable AUX I2C
   };
 
-  for(int i = 0; i < 10; i++){
+  for (int i = 0; i < 10; i++) {
     writeReg(MPU6500_Init_Data[i][0], MPU6500_Init_Data[i][1]);
     osDelay(1);
   }
@@ -164,10 +281,14 @@ int MPU6500::initialize() {
   osDelay(1);
   setAccelRange(G_8);
 
+  int error;
+
+  error = initIST8310();
+
   // Enable auxiliary I2C bus bypass
   // *NOT* Necessary for all setups, but some boards have magnetometer attached to the auxiliary I2C bus
   // and without this settings magnetometer won't be accessible.
-  return 0;
+  return error;
 }
 
 //void MPU6500::calibrate_gyro() {

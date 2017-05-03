@@ -233,6 +233,7 @@ void CAN1_RX0_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
+  sbusStatus = 1;
   memcpy((uint8_t*)&hsbus1, sbus_buffer, sizeof(hsbus1));
   SBUS_Reset_DMA_Rx(&huart1);
   /* USER CODE END USART1_IRQn 0 */

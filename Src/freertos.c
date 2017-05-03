@@ -52,6 +52,7 @@
 #include "bsp/serial.h"
 #include "bsp/sbus.h"
 #include "bsp/hptimer.h"
+#include "bsp/imu.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
@@ -62,6 +63,7 @@ extern int32_t rust_main(int32_t _argc, char** _argv);
 extern osThreadId beepTaskHandle;
 extern osThreadId serialTaskHandle;
 extern osThreadId sbusTaskHandle;
+extern osThreadId imuTaskHandle;
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -104,11 +106,14 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(beepTask, StartBeepTask, osPriorityNormal, 0, 128);
   beepTaskHandle = osThreadCreate(osThread(beepTask), NULL);
   
-  osThreadDef(serialTask, StartSerialTask, osPriorityHigh, 0, 512);
+  osThreadDef(serialTask, StartSerialTask, osPriorityNormal, 0, 512);
   serialTaskHandle = osThreadCreate(osThread(serialTask), NULL);
 
-  osThreadDef(sbusTask, StartSBUSTask, osPriorityHigh, 0, 256);
+  osThreadDef(sbusTask, StartSBUSTask, osPriorityNormal, 0, 256);
   sbusTaskHandle = osThreadCreate(osThread(sbusTask), NULL);
+
+  osThreadDef(imuTask, StartIMUTask, osPriorityHigh, 0, 512);
+  imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -123,7 +128,9 @@ void StartDefaultTask(void const * argument)
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN StartDefaultTask */
-
+  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+  DWT->CYCCNT = 0;
+  DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
   /* Infinite loop */
   for(;;)
   {

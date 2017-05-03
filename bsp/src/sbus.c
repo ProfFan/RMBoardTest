@@ -1,6 +1,7 @@
 //
 // Created by Fan Jiang on 2017/5/1.
 //
+#include <bsp/sbus.h>
 #include "bsp/sbus.h"
 #include "cmsis_os.h"
 #include "usart.h"
@@ -11,6 +12,8 @@ osThreadId sbusTaskHandle;
 RC_Type hsbus1;
 
 uint8_t sbus_buffer[SBUS_DMA_BUFFER_SIZE];
+
+volatile int sbusStatus = 0;
 
 static int UART_Receive_DMA_No_IT(UART_HandleTypeDef* huart, uint8_t* pData, uint16_t Size)
 {
@@ -72,11 +75,30 @@ void SBUS_Rx_Init(UART_HandleTypeDef* huart){
   __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
   UART_Receive_DMA_No_IT(huart, sbus_buffer, SBUS_DMA_BUFFER_SIZE);
 }
+
 void StartSBUSTask(void const *argument){
   for(;;){
-    if(HAL_UART_GetState(&huart1) == HAL_UART_STATE_READY){
+    if(sbusStatus == 0){
+      hsbus1.CH1 = 1024;
+      hsbus1.CH2 = 1024;
+      hsbus1.CH3 = 1024;
+      hsbus1.CH4 = 1024;
+
+      hsbus1.SW1 = 0;
+      hsbus1.SW2 = 0;
+
+      hsbus1.Key.key_code = 0;
+
+      hsbus1.Mouse.L = 0;
+      hsbus1.Mouse.R = 0;
+      hsbus1.Mouse.X = 0;
+      hsbus1.Mouse.Y = 0;
+      hsbus1.Mouse.Z = 0;
+    }
+    if(HAL_DMA_GetState(huart1.hdmarx) != HAL_DMA_STATE_BUSY){
       SBUS_Rx_Init(&huart1);
     }
-    osDelay(500);
+    sbusStatus = 0; // WDT unset
+    osDelay(50);
   }
 }
