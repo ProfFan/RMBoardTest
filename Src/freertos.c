@@ -53,6 +53,7 @@
 #include "bsp/sbus.h"
 #include "bsp/hptimer.h"
 #include "bsp/imu.h"
+#include "bsp/gimbal.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
@@ -64,6 +65,7 @@ extern osThreadId beepTaskHandle;
 extern osThreadId serialTaskHandle;
 extern osThreadId sbusTaskHandle;
 extern osThreadId imuTaskHandle;
+extern osThreadId gimbalTaskHandle;
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -112,8 +114,11 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(sbusTask, StartSBUSTask, osPriorityNormal, 0, 256);
   sbusTaskHandle = osThreadCreate(osThread(sbusTask), NULL);
 
-  osThreadDef(imuTask, StartIMUTask, osPriorityHigh, 0, 512);
+  osThreadDef(imuTask, StartIMUTask, osPriorityAboveNormal, 0, 512);
   imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
+
+  osThreadDef(gimbalTask, StartGimbalTask, osPriorityHigh, 0, 512);
+  imuTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */

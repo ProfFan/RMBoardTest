@@ -44,6 +44,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_cdc_if.h"
 /* USER CODE BEGIN INCLUDE */
+#include "cmsis_os.h"
 /* USER CODE END INCLUDE */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -110,6 +111,7 @@ uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
   */ 
   extern USBD_HandleTypeDef hUsbDeviceFS;
 /* USER CODE BEGIN EXPORTED_VARIABLES */
+  extern void CDC_Receive_Hook(USBD_HandleTypeDef *husb);
 /* USER CODE END EXPORTED_VARIABLES */
 
 /**
@@ -262,6 +264,7 @@ static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+  CDC_Receive_Hook(&hUsbDeviceFS);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
   /* USER CODE END 6 */ 
@@ -293,6 +296,21 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 }
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_IMPLEMENTATION */
+uint8_t CDC_Try_Send(uint8_t* Buf, uint16_t Len, uint16_t timeout)
+{
+  uint8_t result = USBD_OK;
+  /* USER CODE BEGIN 7 */
+  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
+  while (hcdc->TxState != 0){
+    if(timeout<=0) return USBD_BUSY;
+    timeout--;
+    osDelay(1);
+  }
+  USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
+  result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+  /* USER CODE END 7 */
+  return result;
+}
 /* USER CODE END PRIVATE_FUNCTIONS_IMPLEMENTATION */
 
 /**

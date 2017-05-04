@@ -192,7 +192,27 @@ SECTIONS
     . = ALIGN(8);
   } >RAM
 
-  
+
+  /**
+  .eepromPage1 0x81F7FFF :
+  {
+    KEEP(*(.eepromPage1))
+  } >FLASH
+  .eepromPage2 0x81FC000 :
+  {
+    KEEP(*(.eepromPage2))
+  } >FLASH
+  **/
+
+  .eepromPage1 0x8027FFF :
+  {
+    KEEP(*(.eepromPage1)) /* keep my variable even if not referenced */
+  } >FLASH
+
+  .eepromPage2 0x802C000 :
+  {
+    KEEP(*(.eepromPage2)) /* keep my variable even if not referenced */
+  } >FLASH
 
   /* Remove information from the standard libraries */
   /DISCARD/ :

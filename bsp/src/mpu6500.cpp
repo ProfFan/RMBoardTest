@@ -185,7 +185,7 @@ int MPU6500::initIST8310() {
   // writeIST8310Reg(IST8310_R_CONFB, 0x01); //soft rst
   // MPUDelay(10);
   if (IST8310_DEVICE_ID_A != readIST8310Reg(IST8310_WHO_AM_I))
-    return readIST8310Reg(IST8310_WHO_AM_I); //wrong
+    return 1; //wrong
     //return readReg(MPU6500_I2C_SLV0_CTRL);
   writeIST8310Reg(IST8310_R_CONFB, 0x01); //rst
   MPUDelay(10);
@@ -264,7 +264,7 @@ int MPU6500::initialize() {
       {MPU6500_PWR_MGMT_1,     0x80}, // Reset Device
       {MPU6500_PWR_MGMT_1,     0x01}, // Clock Source - Gyro-Z
       {MPU6500_PWR_MGMT_2,     0x00}, // Enable Acc & Gyro
-      {MPU6500_CONFIG,         0x01}, // LPF 188Hz
+      {MPU6500_CONFIG,         0x04}, // LPF 43Hz
       {MPU6500_SMPLRT_DIV,     0x00}, // 1000Hz sampling rate
       {MPU6500_GYRO_CONFIG,    0x18}, // +-2000dps
       {MPU6500_ACCEL_CONFIG,   0x10}, // +-8G
