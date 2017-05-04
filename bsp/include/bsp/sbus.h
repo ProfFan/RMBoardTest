@@ -62,7 +62,7 @@ extern uint8_t sbus_buffer[SBUS_DMA_BUFFER_SIZE];
 
 extern volatile int sbusStatus;
 
-void SBUS_Reset_DMA_Rx(UART_HandleTypeDef* huart);
+void SBUS_Reset_DMA_Rx(UART_HandleTypeDef *huart);
 
 void StartSBUSTask(void const *argument);
 

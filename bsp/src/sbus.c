@@ -15,15 +15,12 @@ uint8_t sbus_buffer[SBUS_DMA_BUFFER_SIZE];
 
 volatile int sbusStatus = 0;
 
-static int UART_Receive_DMA_No_IT(UART_HandleTypeDef* huart, uint8_t* pData, uint16_t Size)
-{
+static int UART_Receive_DMA_No_IT(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size) {
   uint32_t tmp1 = 0;
 
   tmp1 = huart->RxState;
-  if (tmp1 == HAL_UART_STATE_READY)
-  {
-    if ((pData == NULL) || (Size == 0))
-    {
+  if (tmp1 == HAL_UART_STATE_READY) {
+    if ((pData == NULL) || (Size == 0)) {
       return HAL_ERROR;
     }
 
@@ -32,11 +29,11 @@ static int UART_Receive_DMA_No_IT(UART_HandleTypeDef* huart, uint8_t* pData, uin
 
     huart->pRxBuffPtr = pData;
     huart->RxXferSize = Size;
-    huart->ErrorCode  = HAL_UART_ERROR_NONE;
+    huart->ErrorCode = HAL_UART_ERROR_NONE;
 
     /* Enable the DMA Stream */
-    HAL_DMA_Start(huart->hdmarx, (uint32_t)&huart->Instance->DR,
-                  (uint32_t)pData, Size);
+    HAL_DMA_Start(huart->hdmarx, (uint32_t) &huart->Instance->DR,
+                  (uint32_t) pData, Size);
 
     /* Enable the DMA transfer for the receiver request by setting the DMAR bit
 in the UART CR3 register */
@@ -46,17 +43,13 @@ in the UART CR3 register */
     __HAL_UNLOCK(huart);
 
     return HAL_OK;
-  }
-  else
-  {
+  } else {
     return HAL_BUSY;
   }
 }
 
-void SBUS_Reset_DMA_Rx(UART_HandleTypeDef* huart)
-{
-  if (__HAL_UART_GET_FLAG(huart, UART_FLAG_IDLE))
-  {
+void SBUS_Reset_DMA_Rx(UART_HandleTypeDef *huart) {
+  if (__HAL_UART_GET_FLAG(huart, UART_FLAG_IDLE)) {
     __HAL_UART_CLEAR_IDLEFLAG(huart);
     // clear idle it flag
     // restart DMA
@@ -70,15 +63,15 @@ void SBUS_Reset_DMA_Rx(UART_HandleTypeDef* huart)
   }
 }
 
-void SBUS_Rx_Init(UART_HandleTypeDef* huart){
+void SBUS_Rx_Init(UART_HandleTypeDef *huart) {
   __HAL_UART_CLEAR_IDLEFLAG(huart);
   __HAL_UART_ENABLE_IT(huart, UART_IT_IDLE);
   UART_Receive_DMA_No_IT(huart, sbus_buffer, SBUS_DMA_BUFFER_SIZE);
 }
 
-void StartSBUSTask(void const *argument){
-  for(;;){
-    if(sbusStatus == 0){
+void StartSBUSTask(void const *argument) {
+  for (;;) {
+    if (sbusStatus == 0) {
       hsbus1.CH1 = 1024;
       hsbus1.CH2 = 1024;
       hsbus1.CH3 = 1024;
@@ -95,7 +88,7 @@ void StartSBUSTask(void const *argument){
       hsbus1.Mouse.Y = 0;
       hsbus1.Mouse.Z = 0;
     }
-    if(HAL_DMA_GetState(huart1.hdmarx) != HAL_DMA_STATE_BUSY){
+    if (HAL_DMA_GetState(huart1.hdmarx) != HAL_DMA_STATE_BUSY) {
       SBUS_Rx_Init(&huart1);
     }
     sbusStatus = 0; // WDT unset

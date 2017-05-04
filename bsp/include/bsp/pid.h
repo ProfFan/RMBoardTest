@@ -18,8 +18,11 @@ class PID {
 public:
 
   PID(float p, float i, float d, float dt);
+
   void initialize(float value);
+
   float run(float input);
+
 private:
   float Kp, Ki, Kd;
   float dt;

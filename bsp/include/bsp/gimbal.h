@@ -34,6 +34,7 @@ public:
   float yaw_encoder_offset = 0;
 
   void UpdateSensors();
+
 private:
 
   PID pid_pitch;

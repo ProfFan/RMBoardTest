@@ -32,7 +32,7 @@ typedef struct {
   float PIDYawKpV, PIDYawKdV;
 
   uint16_t guard;
-} __attribute__((aligned(2),packed)) RawParams;
+} __attribute__((aligned(2), packed)) RawParams;
 
 #ifdef __cplusplus
 }
@@ -47,13 +47,17 @@ public:
   RawParams raw;
 
   ParamStore();
+
   void ReadParams();
+
   void SaveParams();
+
   void LoadPresets();
+
 private:
 };
 
-extern ParamStore* params;
+extern ParamStore *params;
 
 #endif
 

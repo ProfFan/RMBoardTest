@@ -28,10 +28,10 @@ void StartBeepTask(void const *argument) {
   for (;;) {
 
     if (beepQueue != 0) {
-      if (xQueueReceive( beepQueue, &current, ( TickType_t ) 1000 )) {
-        if((current.pitch >= note_count)||(current.pitch<0)) current.pitch = note_count - 1;
-        if(current.duration >= MAX_DURATION) current.duration = MAX_DURATION;
-        if(current.duration < 0) current.duration = 0;
+      if (xQueueReceive(beepQueue, &current, (TickType_t) 1000)) {
+        if ((current.pitch >= note_count) || (current.pitch < 0)) current.pitch = note_count - 1;
+        if (current.duration >= MAX_DURATION) current.duration = MAX_DURATION;
+        if (current.duration < 0) current.duration = 0;
         __HAL_TIM_SET_AUTORELOAD(&htim3, note_arr_tab[current.pitch]);
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, note_arr_tab[current.pitch] / 10);
         osDelay(current.duration);

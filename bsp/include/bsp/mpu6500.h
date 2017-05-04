@@ -113,10 +113,10 @@
 #define MPU6500_ZA_OFFSET_H         (0x7D)
 #define MPU6500_ZA_OFFSET_L         (0x7E)
 
-#define MPU6050_ID									(0x68)
-#define MPU6500_ID									(0x70)			// mpu6500 id = 0x70
+#define MPU6050_ID                  (0x68)
+#define MPU6500_ID                  (0x70)      // mpu6500 id = 0x70
 
-#define MPU_IIC_ADDR								0x68
+#define MPU_IIC_ADDR                0x68
 
 #endif
 
@@ -173,8 +173,7 @@ typedef enum e_AccelRange {
   G_16 = 3
 } AccelRange;
 
-typedef struct
-{
+typedef struct {
   int16_t ax;
   int16_t ay;
   int16_t az;
@@ -191,13 +190,12 @@ typedef struct
 
 } MPURawData_t;
 
-typedef struct
-{
-  float ax,ay,az;
+typedef struct {
+  float ax, ay, az;
 
-  float mx,my,mz;
+  float mx, my, mz;
 
-  float wx,wy,wz;
+  float wx, wy, wz;
 
   float temp;
 
@@ -208,25 +206,39 @@ typedef struct
 #endif
 
 #ifdef __cplusplus
+
 class MPU6500 {
 public:
   MPU6500(SPI_HandleTypeDef *spi);
+
   int initialize();
+
   void calibrate_gyro();
+
   void calibrate_accel();
+
   void readRawData();
+
   void evaluateGyro();
+
   void evaluateAccel();
+
   void setGyroRange(GyroRange range);
+
   void setAccelRange(AccelRange range);
 
   uint8_t writeReg(uint8_t addr, uint8_t value);
+
   uint8_t readReg(uint8_t addr);
-  uint8_t readReg(uint8_t addr, uint8_t* buffer, uint16_t length);
+
+  uint8_t readReg(uint8_t addr, uint8_t *buffer, uint16_t length);
 
   void writeIST8310Reg(uint8_t addr, uint8_t data);
+
   uint8_t readIST8310Reg(uint8_t addr);
+
   void configureI2CAutoRead(uint8_t device_address, uint8_t reg_base_addr, uint8_t data_num);
+
   int initIST8310();
 
   MPUData_t data;

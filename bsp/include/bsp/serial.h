@@ -4,5 +4,7 @@
 
 #ifndef CHASSIS_SERIAL_H
 #define CHASSIS_SERIAL_H
+
 void StartSerialTask(void const *argument);
+
 #endif //CHASSIS_SERIAL_H

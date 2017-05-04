@@ -302,14 +302,16 @@ void StartIMUTask(void const *argument) {
 //                           true, mpu->data.ax, mpu->data.ay, mpu->data.az,
 //                           true, mpu->data.mx, mpu->data.my, mpu->data.mz,
 //                           false, 0.0f);
-    ahrs->MadgwickQuaternionUpdate(mpu->data.wx - params->raw.GyroXOffset*dt, mpu->data.wy - params->raw.GyroYOffset*dt, mpu->data.wz - params->raw.GyroZOffset*dt,
+    ahrs->MadgwickQuaternionUpdate(mpu->data.wx - params->raw.GyroXOffset * dt,
+                                   mpu->data.wy - params->raw.GyroYOffset * dt,
+                                   mpu->data.wz - params->raw.GyroZOffset * dt,
                                    mpu->data.ax, mpu->data.ay, mpu->data.az,
                                    mpu->data.mx, mpu->data.my, mpu->data.mz);
 
     ahrs->UpdateRPY();
 
-    if(!ahrs->healthy){
-      if((lastPitch-ahrs->pitch)<0.001) {
+    if (!ahrs->healthy) {
+      if ((lastPitch - ahrs->pitch) < 0.001) {
         ahrs->healthy = true;
       }
       lastPitch = ahrs->pitch;

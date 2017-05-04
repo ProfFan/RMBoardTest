@@ -23,7 +23,11 @@ public:
   Motor(CAN_HandleTypeDef *hcan);
 
   void UpdateSensors();
+
   void SetCurrent();
+
+  float current;
+  float angle;
 private:
 
   CAN_HandleTypeDef *hcan;
