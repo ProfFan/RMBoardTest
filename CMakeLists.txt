@@ -6,8 +6,8 @@ project(chassis C CXX ASM)
 
 add_definitions(-DSTM32F427xx)
 add_definitions(-DUSE_HAL_LIBRARY)
-add_definitions(-Wall -ggdb)
 add_definitions(-DARM_MATH_CM4)
+add_definitions(-Wall -ggdb)
 
 set(COMMON_FLAGS "-mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16 -lc -specs=nosys.specs -mthumb -mthumb-interwork -ffunction-sections -fdata-sections -g -fno-common -fmessage-length=0")
 

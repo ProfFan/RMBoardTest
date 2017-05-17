@@ -54,6 +54,7 @@
 #include "bsp/hptimer.h"
 #include "bsp/imu.h"
 #include "bsp/gimbal.h"
+#include "bsp/bsp_can.h"
 /* USER CODE END Includes */
 
 /* Variables -----------------------------------------------------------------*/
@@ -66,6 +67,8 @@ extern osThreadId serialTaskHandle;
 extern osThreadId sbusTaskHandle;
 extern osThreadId imuTaskHandle;
 extern osThreadId gimbalTaskHandle;
+
+extern int messageCount;
 /* USER CODE END Variables */
 
 /* Function prototypes -------------------------------------------------------*/
@@ -136,6 +139,8 @@ void StartDefaultTask(void const * argument)
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->CYCCNT = 0;
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
+  CAN_Initialize();
   /* Infinite loop */
   for(;;)
   {

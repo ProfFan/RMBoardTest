@@ -16,6 +16,7 @@ extern "C" {
 #include <bsp/param.h>
 #include "bsp/imu.h"
 #include "bsp/param.h"
+#include "bsp/gimbal.h"
 
 osThreadId serialTaskHandle;
 
@@ -27,6 +28,7 @@ Note_t currNote;
 
 uint8_t print_buf[256];
 
+int messageCount;
 //float mx_sum = 0, my_sum = 0, mz_sum = 0;
 
 void StartSerialTask(void const *argument) {
@@ -56,8 +58,8 @@ void StartSerialTask(void const *argument) {
 //      size = sprintf((char *) print_buf, "\033[KGx: %f, Gy: %f, Gz: %f, Tim: %f, Tmp: %f\r\n",
 //                     mx_sum/time, my_sum/time, mz_sum/time, time, mpu->data.temp);
 
-      size = sprintf((char *) print_buf, "\033[KP: %f, R: %f, Y: %f, Kp: %f, Tmp: %f\r\n",
-                     ahrs->pitch * 180.0f / M_PI, ahrs->roll * 180.0f / M_PI, ahrs->yaw * 180.0f / M_PI, ahrs->beta,
+      size = sprintf((char *) print_buf, "\033[KP: %f, Y: %f, C: %d, Kp: %d, Tmp: %f\r\n",
+                     ahrs->pitch * 180.0f / M_PI, ahrs->yaw * 180.0f / M_PI, messageCount, gimbal->pitch_motor.angle,
                      mpu->data.temp);
 
       CDC_Try_Send(print_buf, size, 1);

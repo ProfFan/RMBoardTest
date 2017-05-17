@@ -3,9 +3,10 @@ include(CMakeForceCompiler)
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_VERSION 1)
 
-CMAKE_FORCE_C_COMPILER(arm-none-eabi-gcc GCC)
-CMAKE_FORCE_CXX_COMPILER(arm-none-eabi-g++ GCC)
-set(CMAKE_ASM_COMPILER arm-none-eabi-as)
+set(CMAKE_C_COMPILER arm-none-eabi-gcc)
+set(CMAKE_CXX_COMPILER arm-none-eabi-g++)
+
+set(CMAKE_ASM_COMPILER arm-none-eabi-gcc)
 
 set(CMAKE_OBJCOPY arm-none-eabi-objcopy)
 

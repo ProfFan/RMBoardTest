@@ -25,7 +25,7 @@ void StartGimbalTask(void const *argument);
 class Gimbal {
 public:
 
-  Gimbal(CAN_HandleTypeDef *hcan);
+  Gimbal(CAN *hcan);
 
   float pitch_encoder = 0;
   float pitch_encoder_offset = 0;
@@ -33,20 +33,24 @@ public:
   float yaw_encoder = 0;
   float yaw_encoder_offset = 0;
 
-  void UpdateSensors();
+  void Run();
 
-private:
+  void Arm();
 
-  PID pid_pitch;
-  PID pid_yaw;
-
-  PID pid_pitch_v;
-  PID pid_yaw_v;
-
-  CAN_HandleTypeDef *hcan;
+  void Disarm();
 
   Motor pitch_motor;
   Motor yaw_motor;
+
+private:
+  bool armed;
+  PID pid_pitch;
+  PID pid_pitch_v;
+
+  PID pid_yaw;
+  PID pid_yaw_v;
+
+  CAN* hcan;
 };
 
 extern Gimbal *gimbal;

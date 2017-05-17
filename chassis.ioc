@@ -154,6 +154,7 @@ NVIC.BusFault_IRQn=true\:0\:0\:false\:false\:true\:false
 NVIC.CAN1_RX0_IRQn=true\:5\:0\:false\:false\:true\:true
 NVIC.CAN1_TX_IRQn=true\:5\:0\:false\:false\:true\:true
 NVIC.CAN2_RX0_IRQn=true\:5\:0\:false\:false\:true\:true
+NVIC.CAN2_RX1_IRQn=true\:5\:0\:false\:false\:true\:true
 NVIC.CAN2_TX_IRQn=true\:5\:0\:false\:false\:true\:true
 NVIC.DMA1_Stream1_IRQn=true\:5\:0\:false\:false\:true\:true
 NVIC.DMA1_Stream5_IRQn=true\:5\:0\:false\:false\:true\:true

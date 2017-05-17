@@ -233,9 +233,14 @@ void CAN1_RX0_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-  sbusStatus = 1;
-  memcpy((uint8_t*)&hsbus1, sbus_buffer, sizeof(hsbus1));
-  SBUS_Reset_DMA_Rx(&huart1);
+  uint32_t isrflags   = READ_REG(huart1.Instance->SR);
+
+  if((isrflags & (uint32_t)(USART_SR_PE | USART_SR_FE | USART_SR_ORE | USART_SR_NE)) == RESET)
+  {
+    sbusStatus = 1;
+    memcpy((uint8_t*)&hsbus1, sbus_buffer, sizeof(hsbus1));
+    SBUS_Reset_DMA_Rx(&huart1);
+  }
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
@@ -339,6 +344,20 @@ void CAN2_RX0_IRQHandler(void)
   /* USER CODE BEGIN CAN2_RX0_IRQn 1 */
 
   /* USER CODE END CAN2_RX0_IRQn 1 */
+}
+
+/**
+* @brief This function handles CAN2 RX1 interrupt.
+*/
+void CAN2_RX1_IRQHandler(void)
+{
+  /* USER CODE BEGIN CAN2_RX1_IRQn 0 */
+
+  /* USER CODE END CAN2_RX1_IRQn 0 */
+  HAL_CAN_IRQHandler(&hcan2);
+  /* USER CODE BEGIN CAN2_RX1_IRQn 1 */
+
+  /* USER CODE END CAN2_RX1_IRQn 1 */
 }
 
 /**
