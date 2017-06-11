@@ -235,12 +235,14 @@ void USART1_IRQHandler(void)
   /* USER CODE BEGIN USART1_IRQn 0 */
   uint32_t isrflags   = READ_REG(huart1.Instance->SR);
 
-  if((isrflags & (uint32_t)(USART_SR_PE | USART_SR_FE | USART_SR_ORE | USART_SR_NE)) == RESET)
-  {
+//  if((isrflags & (uint32_t)(USART_SR_PE | USART_SR_FE | USART_SR_ORE | USART_SR_NE)) == RESET)
+//  {
+  if (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_IDLE)) {
     sbusStatus = 1;
-    memcpy((uint8_t*)&hsbus1, sbus_buffer, sizeof(hsbus1));
+    memcpy((uint8_t *) &hsbus1, sbus_buffer, sizeof(hsbus1));
     SBUS_Reset_DMA_Rx(&huart1);
   }
+//  }
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */

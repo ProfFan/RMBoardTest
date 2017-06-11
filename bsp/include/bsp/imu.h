@@ -46,7 +46,6 @@ public:
 
   float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};
   float rMat[3][3];
-  bool ready = false;
   float dcm_kp = 1;
   float dcm_ki = 0.0;
   bool healthy = false;

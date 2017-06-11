@@ -52,7 +52,7 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *_hcan) {
   __HAL_CAN_ENABLE_IT(&hcan1, CAN_IT_FMP0);
   __HAL_CAN_ENABLE_IT(&hcan2, CAN_IT_FMP1);
 }
-}
+
 int CAN_Initialize() {
 //  can1 = new CAN(&hcan1);
 //  can2 = new CAN(&hcan2);
@@ -89,4 +89,5 @@ int CAN_Initialize() {
   if (HAL_CAN_Receive_IT(&hcan2, CAN_FIFO1) != HAL_OK) return 4;
 
   return 0;
+}
 }

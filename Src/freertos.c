@@ -54,6 +54,7 @@
 #include "bsp/hptimer.h"
 #include "bsp/imu.h"
 #include "bsp/gimbal.h"
+#include "bsp/chassis.h"
 #include "bsp/bsp_can.h"
 /* USER CODE END Includes */
 
@@ -67,6 +68,7 @@ extern osThreadId serialTaskHandle;
 extern osThreadId sbusTaskHandle;
 extern osThreadId imuTaskHandle;
 extern osThreadId gimbalTaskHandle;
+extern osThreadId chassisTaskHandle;
 
 extern int messageCount;
 /* USER CODE END Variables */
@@ -121,7 +123,11 @@ void MX_FREERTOS_Init(void) {
   imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
 
   osThreadDef(gimbalTask, StartGimbalTask, osPriorityAboveNormal, 0, 512);
-  imuTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
+  gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
+
+  osThreadDef(chassisTask, StartChassisTask, osPriorityAboveNormal, 0, 512);
+  chassisTaskHandle = osThreadCreate(osThread(chassisTask), NULL);
+
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -136,6 +142,7 @@ void StartDefaultTask(void const * argument)
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN StartDefaultTask */
+  // Enable CYCCNT High Resolution Timer
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
   DWT->CYCCNT = 0;
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;

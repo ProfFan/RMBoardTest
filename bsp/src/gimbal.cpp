@@ -39,7 +39,7 @@ void Gimbal::Disarm() {
   armed = false;
 }
 
-void StartGimbalTask(void const *argument) {
+extern "C" void StartGimbalTask(void const *argument) {
   while(!ahrs->healthy) osDelay(100);
 
   for(;;){

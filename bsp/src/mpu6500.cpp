@@ -41,7 +41,7 @@ uint8_t MPU6500::writeReg(uint8_t const addr, uint8_t value) {
   MPU_NSS_LOW;
   HAL_SPI_TransmitReceive(port, txdata, rxdata, 2, 55);
   MPU_NSS_HIGH;
-  return rxdata[2];
+  return rxdata[1];
 }
 
 uint8_t MPU6500::readReg(uint8_t const addr) {
@@ -149,9 +149,10 @@ void MPU6500::configureI2CAutoRead(uint8_t device_address, uint8_t reg_base_addr
   writeReg(MPU6500_I2C_SLV0_REG, reg_base_addr);
   MPUDelay(2);
 
-  //every eight mpu6500 internal samples one i2c master read
-  writeReg(MPU6500_I2C_SLV4_CTRL, 0x03);
+  //every 10 mpu6500 internal samples one i2c master read
+  writeReg(MPU6500_I2C_SLV4_CTRL, 0x09);
   MPUDelay(2);
+
   //enable slave 0 and 1 access delay
   writeReg(MPU6500_I2C_MST_DELAY_CTRL, 0x01 | 0x02);
   MPUDelay(2);
@@ -199,9 +200,14 @@ int MPU6500::initIST8310() {
   if (readIST8310Reg(IST8310_R_CONFB) != 0x00)
     return 3;
   MPUDelay(10);
+
+# define CTRL3_SAMPLEAVG_16		0x24	/* Sample Averaging 16 */
+# define CTRL3_SAMPLEAVG_8		0x1b	/* Sample Averaging 8 */
+# define CTRL3_SAMPLEAVG_4		0x12	/* Sample Averaging 4 */
+# define CTRL3_SAMPLEAVG_2		0x09	/* Sample Averaging 2 */
   //config  low noise mode, x,y,z axis 16 time 1 avg,
-  writeIST8310Reg(IST8310_AVGCNTL, 0x24); //100100
-  if (readIST8310Reg(IST8310_AVGCNTL) != 0x24)
+  writeIST8310Reg(IST8310_AVGCNTL, CTRL3_SAMPLEAVG_2); //100100
+  if (readIST8310Reg(IST8310_AVGCNTL) != CTRL3_SAMPLEAVG_2)
     return 4;
   MPUDelay(10);
 
@@ -281,9 +287,14 @@ int MPU6500::initialize() {
   osDelay(1);
   setAccelRange(G_8);
 
-  int error;
+  int error = 100;
+  int tries = 0;
 
-  error = initIST8310();
+  while((error != 0) && (tries < 10)) {
+    error = initIST8310();
+    osDelay(100);
+    tries++;
+  }
 
   // Enable auxiliary I2C bus bypass
   // *NOT* Necessary for all setups, but some boards have magnetometer attached to the auxiliary I2C bus

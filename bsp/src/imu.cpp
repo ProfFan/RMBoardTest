@@ -318,7 +318,7 @@ void StartIMUTask(void const *argument) {
     }
 
     ahrs->lastUpdate = ahrs->currentUpdate;
-    ahrs->ready = true;
+
     osDelay(1);
   }
 }
