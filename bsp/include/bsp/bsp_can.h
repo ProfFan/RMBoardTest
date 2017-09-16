@@ -35,6 +35,7 @@ public:
   float current;
   float angle;
   CAN_HandleTypeDef *hcan;
+
 private:
   int tableSize = 0;
   uint32_t idTable[MAX_CAN_CALLBACK];

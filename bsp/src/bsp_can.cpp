@@ -19,9 +19,20 @@ CAN::CAN(CAN_HandleTypeDef *hcan) {
 
 int CAN::registerCallback(uint32_t messageID, std::function<void(CanRxMsgTypeDef *)> callback) {
   if (tableSize < MAX_CAN_CALLBACK) {
+    uint32_t prim;
+
+    /* Read PRIMASK register, check interrupt status before you disable them */
+    /* Returns 0 if they are enabled, or non-zero if disabled */
+    prim = __get_PRIMASK();
+
+    __disable_irq();
+
     idTable[tableSize] = messageID;
     callbackTable[tableSize] = callback;
     tableSize++;
+
+    if(!prim) __enable_irq();
+
     return 0;
   } else {
     return 1;
