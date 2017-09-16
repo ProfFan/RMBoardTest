@@ -309,7 +309,7 @@ void StartIMUTask(void const *argument) {
                                    mpu->data.mx, mpu->data.my, mpu->data.mz);
 
     ahrs->UpdateRPY();
-
+    ahrs->lastUpdate = ahrs->currentUpdate;
     if (!ahrs->healthy) {
       if ((lastPitch - ahrs->pitch) < 0.001) {
         ahrs->healthy = true;

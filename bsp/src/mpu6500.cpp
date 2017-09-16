@@ -19,7 +19,11 @@ extern "C" {
 #include "gpio.h"
 }
 
+#include <bsp/param.h>
+#include "arm_math.h"
+
 #include "bsp/mpu6500.h"
+#include "bsp/param.h"
 
 #define MPU_NSS_LOW HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET)
 #define MPU_NSS_HIGH HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_SET)
@@ -60,6 +64,81 @@ uint8_t MPU6500::readReg(uint8_t const addr, uint8_t *buffer, uint16_t length) {
 
   MPU_NSS_HIGH;
   return rxdata;
+}
+
+uint8_t MPU6500::setRegBit(uint8_t const addr, uint8_t bit, uint8_t state) {
+
+  if (bit > 7)
+    return 1;
+
+  if (state > 1)
+    return 1;
+
+  uint8_t data;
+  data = readReg(addr);
+  data |= state << bit;
+
+  writeReg(addr, data);
+
+  return 0;
+}
+
+uint8_t MPU6500::getRegBit(uint8_t const addr, uint8_t bit) {
+
+  if (bit > 7)
+    return 2;
+
+  uint8_t data;
+  data = readReg(addr);
+
+  return (data >> bit) & 1;
+}
+
+static inline uint8_t getbits(uint8_t value, uint8_t offset, uint8_t n) {
+
+  if (offset >= 8)
+    return 0; /* value is padded with infinite zeros on the left */
+
+  value >>= offset; /* drop offset bits */
+
+  if (n >= 8)
+    return value; /* all  bits requested */
+
+  const unsigned mask = (1u << n) - 1; /* n '1's */
+
+  return value & mask;
+}
+
+uint8_t MPU6500::getRegBits(uint8_t const addr, uint8_t offset, uint8_t size) {
+
+  if (offset > 7)
+    return 2;
+
+  uint8_t data;
+  data = readReg(addr);
+
+  return getbits(data, offset, size);
+}
+
+uint8_t MPU6500::setRegBits(uint8_t const addr, uint8_t offset, uint8_t size, uint8_t value) {
+
+  if (size > 7)
+    return 1;
+
+  if (offset > 7)
+    return 1;
+
+  uint8_t data, temp = 0;
+  data = readReg(addr);
+
+  uint8_t mask = ((1 << size) - 1) << (offset - size + 1);
+  data <<= (offset - size + 1); // shift data into correct position
+  data &= mask; // zero all non-important bits in data
+  temp &= ~(mask); // zero all important bits in existing byte
+  temp |= data; // combine data with existing byte
+  writeReg(addr, temp);
+
+  return 0;
 }
 
 void MPU6500::setAccelRange(AccelRange range) {
@@ -106,6 +185,242 @@ void MPU6500::setGyroRange(GyroRange range) {
   }
 
   writeReg(MPU6500_GYRO_CONFIG, range << 3);
+}
+
+/** Get the I2C address of the specified slave (0-3).
+ * Note that Bit 7 (MSB) controls read/write mode. If Bit 7 is set, it's a read
+ * operation, and if it is cleared, then it's a write operation. The remaining
+ * bits (6-0) are the 7-bit device address of the slave device.
+ *
+ * In read mode, the result of the read is placed in the lowest available
+ * EXT_SENS_DATA register. For further information regarding the allocation of
+ * read results, please refer to the EXT_SENS_DATA register description
+ * (Registers 73 - 96).
+ *
+ * The MPU-6500 supports a total of five slaves, but Slave 4 has unique
+ * characteristics, and so it has its own functions (getSlave4* and setSlave4*).
+ *
+ * I2C data transactions are performed at the Sample Rate, as defined in
+ * Register 25. The user is responsible for ensuring that I2C data transactions
+ * to and from each enabled Slave can be completed within a single period of the
+ * Sample Rate.
+ *
+ * The I2C slave access rate can be reduced relative to the Sample Rate. This
+ * reduced access rate is determined by I2C_MST_DLY (Register 52). Whether a
+ * slave's access rate is reduced relative to the Sample Rate is determined by
+ * I2C_MST_DELAY_CTRL (Register 103).
+ *
+ * The processing order for the slaves is fixed. The sequence followed for
+ * processing the slaves is Slave 0, Slave 1, Slave 2, Slave 3 and Slave 4. If a
+ * particular Slave is disabled it will be skipped.
+ *
+ * Each slave can either be accessed at the sample rate or at a reduced sample
+ * rate. In a case where some slaves are accessed at the Sample Rate and some
+ * slaves are accessed at the reduced rate, the sequence of accessing the slaves
+ * (Slave 0 to Slave 4) is still followed. However, the reduced rate slaves will
+ * be skipped if their access rate dictates that they should not be accessed
+ * during that particular cycle. For further information regarding the reduced
+ * access rate, please refer to Register 52. Whether a slave is accessed at the
+ * Sample Rate or at the reduced rate is determined by the Delay Enable bits in
+ * Register 103.
+ *
+ * @param num Slave number (0-3)
+ * @return Current address for specified slave
+ * @see MPU6500_RA_I2C_SLV0_ADDR
+ */
+uint8_t MPU6500::GetSlaveAddress(uint8_t num) {
+  if (num > 3)
+    return 0;
+
+  return readReg(MPU6500_RA_I2C_SLV0_ADDR + num * 3);
+}
+
+/** Set the I2C address of the specified slave (0-3).
+ * @param num Slave number (0-3)
+ * @param address New address for specified slave
+ * @see getSlaveAddress()
+ * @see MPU6500_RA_I2C_SLV0_ADDR
+ */
+uint8_t MPU6500::SetSlaveAddress(uint8_t num, uint8_t address) {
+  if (num > 3)
+    return 1;
+
+  writeReg(MPU6500_RA_I2C_SLV0_ADDR + num * 3, address);
+
+  return 0;
+}
+
+/** Get the active internal register for the specified slave (0-3).
+ * Read/write operations for this slave will be done to whatever internal
+ * register address is stored in this MPU register.
+ *
+ * The MPU-6500 supports a total of five slaves, but Slave 4 has unique
+ * characteristics, and so it has its own functions.
+ *
+ * @param num Slave number (0-3)
+ * @return Current active register for specified slave
+ * @see MPU6500_RA_I2C_SLV0_REG
+ */
+uint8_t MPU6500::GetSlaveRegister(uint8_t num) {
+  if (num > 3)
+    return 0;
+
+  return readReg(MPU6500_RA_I2C_SLV0_REG + num * 3);
+}
+
+/** Set the active internal register for the specified slave (0-3).
+ * @param num Slave number (0-3)
+ * @param reg New active register for specified slave
+ * @see getSlaveRegister()
+ * @see MPU6500_RA_I2C_SLV0_REG
+ */
+uint8_t MPU6500::SetSlaveRegister(uint8_t num, uint8_t reg) {
+  if (num > 3)
+    return 0;
+
+  return writeReg(MPU6500_RA_I2C_SLV0_REG + num * 3, reg);
+}
+
+/** Get the enabled value for the specified slave (0-3).
+ * When set to 1, this bit enables Slave 0 for data transfer operations. When
+ * cleared to 0, this bit disables Slave 0 from data transfer operations.
+ * @param num Slave number (0-3)
+ * @return Current enabled value for specified slave
+ * @see MPU6500_RA_I2C_SLV0_CTRL
+ */
+bool MPU6500::GetSlaveEnabled(uint8_t num) {
+  if (num > 3)
+    return 0;
+
+  return getRegBit(MPU6500_RA_I2C_SLV0_CTRL + num * 3, MPU6500_I2C_SLV_EN_BIT);
+}
+
+/** Set the enabled value for the specified slave (0-3).
+ * @param num Slave number (0-3)
+ * @param enabled New enabled value for specified slave
+ * @see getSlaveEnabled()
+ * @see MPU6500_RA_I2C_SLV0_CTRL
+ */
+uint8_t MPU6500::SetSlaveEnabled(uint8_t num, bool enabled) {
+  if (num > 3)
+    return 0;
+  return setRegBit(MPU6500_RA_I2C_SLV0_CTRL + num * 3, MPU6500_I2C_SLV_EN_BIT,
+                   enabled);
+}
+
+/** Get word pair byte-swapping enabled for the specified slave (0-3).
+ * When set to 1, this bit enables byte swapping. When byte swapping is enabled,
+ * the high and low bytes of a word pair are swapped. Please refer to
+ * I2C_SLV0_GRP for the pairing convention of the word pairs. When cleared to 0,
+ * bytes transferred to and from Slave 0 will be written to EXT_SENS_DATA
+ * registers in the order they were transferred.
+ *
+ * @param num Slave number (0-3)
+ * @return Current word pair byte-swapping enabled value for specified slave
+ * @see MPU6500_RA_I2C_SLV0_CTRL
+ */
+bool MPU6500::GetSlaveWordByteSwap(uint8_t num) {
+  if (num > 3)
+    return 0;
+  return getRegBit(MPU6500_RA_I2C_SLV0_CTRL + num * 3, MPU6500_I2C_SLV_BYTE_SW_BIT);
+}
+
+/** Set word pair byte-swapping enabled for the specified slave (0-3).
+ * @param num Slave number (0-3)
+ * @param enabled New word pair byte-swapping enabled value for specified slave
+ * @see getSlaveWordByteSwap()
+ * @see MPU6500_RA_I2C_SLV0_CTRL
+ */
+uint8_t MPU6500::SetSlaveWordByteSwap(uint8_t num, bool enabled) {
+  if (num > 3)
+    return 0;
+  return setRegBit(MPU6500_RA_I2C_SLV0_CTRL + num * 3, MPU6500_I2C_SLV_BYTE_SW_BIT, enabled);
+}
+
+/** Get write mode for the specified slave (0-3).
+ * When set to 1, the transaction will read or write data only. When cleared to
+ * 0, the transaction will write a register address prior to reading or writing
+ * data. This should equal 0 when specifying the register address within the
+ * Slave device to/from which the ensuing data transaction will take place.
+ *
+ * @param num Slave number (0-3)
+ * @return Current write mode for specified slave (0 = register address + data, 1 = data only)
+ * @see MPU6500_RA_I2C_SLV0_CTRL
+ */
+bool MPU6500::GetSlaveWriteMode(uint8_t num) {
+  if (num > 3)
+    return 0;
+  return getRegBit(MPU6500_RA_I2C_SLV0_CTRL + num * 3, MPU6500_I2C_SLV_REG_DIS_BIT);
+}
+
+/** Set write mode for the specified slave (0-3).
+ * @param num Slave number (0-3)
+ * @param mode New write mode for specified slave (0 = register address + data, 1 = data only)
+ * @see getSlaveWriteMode()
+ * @see MPU6500_RA_I2C_SLV0_CTRL
+ */
+uint8_t MPU6500::SetSlaveWriteMode(uint8_t num, bool mode) {
+  if (num > 3)
+    return 0;
+  return setRegBit(MPU6500_RA_I2C_SLV0_CTRL + num * 3, MPU6500_I2C_SLV_REG_DIS_BIT,
+                   mode);
+}
+
+/** Get word pair grouping order offset for the specified slave (0-3).
+ * This sets specifies the grouping order of word pairs received from registers.
+ * When cleared to 0, bytes from register addresses 0 and 1, 2 and 3, etc (even,
+ * then odd register addresses) are paired to form a word. When set to 1, bytes
+ * from register addresses are paired 1 and 2, 3 and 4, etc. (odd, then even
+ * register addresses) are paired to form a word.
+ *
+ * @param num Slave number (0-3)
+ * @return Current word pair grouping order offset for specified slave
+ * @see MPU6500_RA_I2C_SLV0_CTRL
+ */
+bool MPU6500::GetSlaveWordGroupOffset(uint8_t num) {
+  if (num > 3)
+    return 0;
+  return getRegBit(MPU6500_RA_I2C_SLV0_CTRL + num * 3, MPU6500_I2C_SLV_GRP_BIT);
+}
+
+/** Set word pair grouping order offset for the specified slave (0-3).
+ * @param num Slave number (0-3)
+ * @param enabled New word pair grouping order offset for specified slave
+ * @see getSlaveWordGroupOffset()
+ * @see MPU6500_RA_I2C_SLV0_CTRL
+ */
+uint8_t MPU6500::SetSlaveWordGroupOffset(uint8_t num, bool enabled) {
+  if (num > 3)
+    return 0;
+  return setRegBit(MPU6500_RA_I2C_SLV0_CTRL + num * 3, MPU6500_I2C_SLV_GRP_BIT,
+                   enabled);
+}
+
+/** Get number of bytes to read for the specified slave (0-3).
+ * Specifies the number of bytes transferred to and from Slave 0. Clearing this
+ * bit to 0 is equivalent to disabling the register by writing 0 to I2C_SLV0_EN.
+ * @param num Slave number (0-3)
+ * @return Number of bytes to read for specified slave
+ * @see MPU6500_RA_I2C_SLV0_CTRL
+ */
+uint8_t MPU6500::GetSlaveDataLength(uint8_t num) {
+  if (num > 3)
+    return 0;
+  return getRegBits(MPU6500_RA_I2C_SLV0_CTRL + num * 3, MPU6500_I2C_SLV_LEN_BIT,
+                    MPU6500_I2C_SLV_LEN_LENGTH);
+}
+
+/** Set number of bytes to read for the specified slave (0-3).
+ * @param num Slave number (0-3)
+ * @param length Number of bytes to read for specified slave
+ * @see getSlaveDataLength()
+ * @see MPU6500_RA_I2C_SLV0_CTRL
+ */
+uint8_t MPU6500::SetSlaveDataLength(uint8_t num, uint8_t length) {
+  if (num > 3)
+    return 1;
+  return setRegBits(MPU6500_RA_I2C_SLV0_CTRL + num * 3, MPU6500_I2C_SLV_LEN_BIT,
+                    MPU6500_I2C_SLV_LEN_LENGTH, length);
 }
 
 void MPU6500::writeIST8310Reg(uint8_t addr, uint8_t data) {
@@ -187,7 +502,7 @@ int MPU6500::initIST8310() {
   // MPUDelay(10);
   if (IST8310_DEVICE_ID_A != readIST8310Reg(IST8310_WHO_AM_I))
     return 1; //wrong
-    //return readReg(MPU6500_I2C_SLV0_CTRL);
+  //return readReg(MPU6500_I2C_SLV0_CTRL);
   writeIST8310Reg(IST8310_R_CONFB, 0x01); //rst
   MPUDelay(10);
 
@@ -201,10 +516,10 @@ int MPU6500::initIST8310() {
     return 3;
   MPUDelay(10);
 
-# define CTRL3_SAMPLEAVG_16		0x24	/* Sample Averaging 16 */
-# define CTRL3_SAMPLEAVG_8		0x1b	/* Sample Averaging 8 */
-# define CTRL3_SAMPLEAVG_4		0x12	/* Sample Averaging 4 */
-# define CTRL3_SAMPLEAVG_2		0x09	/* Sample Averaging 2 */
+# define CTRL3_SAMPLEAVG_16    0x24  /* Sample Averaging 16 */
+# define CTRL3_SAMPLEAVG_8    0x1b  /* Sample Averaging 8 */
+# define CTRL3_SAMPLEAVG_4    0x12  /* Sample Averaging 4 */
+# define CTRL3_SAMPLEAVG_2    0x09  /* Sample Averaging 2 */
   //config  low noise mode, x,y,z axis 16 time 1 avg,
   writeIST8310Reg(IST8310_AVGCNTL, CTRL3_SAMPLEAVG_2); //100100
   if (readIST8310Reg(IST8310_AVGCNTL) != CTRL3_SAMPLEAVG_2)
@@ -254,17 +569,25 @@ void MPU6500::readRawData() {
 
   readReg(MPU6500_EXT_SENS_DATA_00, (uint8_t *) &(mpu_data.mx), 6);
 
-  data.mx = mpu_data.mx * 0.003;
-  data.my = mpu_data.my * 0.003;
-  data.mz = mpu_data.mz * 0.003;
+  float mx = mpu_data.mx - MagXOffset;
+  float my = mpu_data.my - MagYOffset;
+  float mz = mpu_data.mz - MagZOffset;
+
+  data.mx = MagEllipsoidAInv[0][0] * mx + MagEllipsoidAInv[0][1] * my + MagEllipsoidAInv[0][2] * mz;
+  data.my = MagEllipsoidAInv[1][0] * mx + MagEllipsoidAInv[1][1] * my + MagEllipsoidAInv[1][2] * mz;
+  data.mz = MagEllipsoidAInv[2][0] * mx + MagEllipsoidAInv[2][1] * my + MagEllipsoidAInv[2][2] * mz;
 
 }
 
 int MPU6500::initialize() {
+  params->LoadPresets();
+  params->ReadParams();
 
-//  if(readReg(MPU6500_WHO_AM_I) != MPU6500_ID){
-//    return -1;
-//  }
+  MagXOffset = params->raw.MagXOffset;
+  MagYOffset = params->raw.MagYOffset;
+  MagZOffset = params->raw.MagZOffset;
+
+  memcpy(MagEllipsoidAInv, params->raw.MagEllipsoidAInv, sizeof(MagEllipsoidAInv));
 
   uint8_t MPU6500_Init_Data[10][2] = {
       {MPU6500_PWR_MGMT_1,     0x80}, // Reset Device
@@ -290,7 +613,7 @@ int MPU6500::initialize() {
   int error = 100;
   int tries = 0;
 
-  while((error != 0) && (tries < 10)) {
+  while ((error != 0) && (tries < 10)) {
     error = initIST8310();
     osDelay(100);
     tries++;

@@ -17,7 +17,7 @@ uint16_t VirtAddVarTab[NB_OF_VAR] = {
 ParamStore *params = new ParamStore;
 
 void ParamStorageSanityCheck() {
-  BUILD_BUG_ON(sizeof(RawParams) > sizeof(VirtAddVarTab));
+  BUILD_BUG_ON(sizeof(RawParams) / 2 > sizeof(VirtAddVarTab));
 }
 
 ParamStore::ParamStore() {
@@ -62,17 +62,25 @@ void ParamStore::SaveParams() {
 void ParamStore::LoadPresets() {
   raw.checksum = 0xBEEF;
   raw.guard = 0xDEAD;
-  raw.GyroXOffset = 1.42f;
-  raw.GyroYOffset = 1.30f;
-  raw.GyroZOffset = -0.3428f;
+  raw.GyroXOffset = -0.58247298f;
+  raw.GyroYOffset = -0.57712272f;
+  raw.GyroZOffset = -2.64872325f;
 
-  raw.MagXOffset = 0;
-  raw.MagYOffset = 0;
-  raw.MagZOffset = 0;
+  raw.MagXOffset = 7.15559368;
+  raw.MagYOffset = -196.75254773;
+  raw.MagZOffset = 282.78573528;
 
-  raw.MagXRatio = 0;
-  raw.MagYRatio = 0;
-  raw.MagZRatio = 0;
+  raw.MagEllipsoidAInv[0][0] = 7.78583592e-03;
+  raw.MagEllipsoidAInv[0][1] = -3.65206706e-04;
+  raw.MagEllipsoidAInv[0][2] = 5.52328167e-04;
+
+  raw.MagEllipsoidAInv[1][0] = -3.65206706e-04;
+  raw.MagEllipsoidAInv[1][1] = 7.21988342e-03;
+  raw.MagEllipsoidAInv[1][2] = 3.79955892e-06;
+
+  raw.MagEllipsoidAInv[2][0] = 5.52328167e-04;
+  raw.MagEllipsoidAInv[2][1] = 3.79955892e-06;
+  raw.MagEllipsoidAInv[2][2] = 7.74409334e-03;
 
   raw.PIDPitchKp = 0;
   raw.PIDPitchKi = 0;

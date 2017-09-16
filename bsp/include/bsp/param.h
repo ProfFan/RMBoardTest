@@ -21,9 +21,7 @@ typedef struct {
   float MagYOffset;
   float MagZOffset;
 
-  float MagXRatio;
-  float MagYRatio;
-  float MagZRatio;
+  float MagEllipsoidAInv[3][3];
 
   float PIDPitchKp, PIDPitchKi, PIDPitchKd;
   float PIDPitchKpV, PIDPitchKdV;

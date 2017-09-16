@@ -46,10 +46,10 @@ public:
 
   float q[4] = {1.0f, 0.0f, 0.0f, 0.0f};
   float rMat[3][3];
-  float dcm_kp = 1;
+  float dcm_kp = 2.0f * 5.0f;
   float dcm_ki = 0.0;
   bool healthy = false;
-  float beta = 1.753340;
+  float beta = 0.604;// 1.753340;
 
   float roll = 0, pitch = 0, yaw = 0;
 private:
