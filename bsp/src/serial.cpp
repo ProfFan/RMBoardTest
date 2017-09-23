@@ -53,13 +53,13 @@ void StartSerialTask(void const *argument) {
   currNote.duration = 200;
   currNote.pitch = 0;
 
-  params->LoadPresets();
+  //params->LoadPresets();
 
   /* Infinite loop */
   for (;;) {
 
     // System Status
-    if(HAL_GetTick()%1000) { // Every second
+    if (HAL_GetTick() % 1000) { // Every second
       if (!ahrs->healthy) {
         mavlink_msg_heartbeat_pack(mavlinkSystem.sysid, mavlinkSystem.compid, &mavlinkMessage, MAV_TYPE_GROUND_ROVER,
                                    MAV_AUTOPILOT_GENERIC, MAV_MODE_PREFLIGHT, 0, MAV_STATE_BOOT);
@@ -67,7 +67,7 @@ void StartSerialTask(void const *argument) {
         CDC_Try_Send(mavlinkTxBuffer, mavlink_msg_to_send_buffer(mavlinkTxBuffer, &mavlinkMessage), 1);
       } else {
         mavlink_msg_heartbeat_pack(mavlinkSystem.sysid, mavlinkSystem.compid, &mavlinkMessage, MAV_TYPE_GROUND_ROVER,
-                                   MAV_AUTOPILOT_GENERIC, MAV_MODE_MANUAL_DISARMED, 0, MAV_STATE_BOOT);
+                                   MAV_AUTOPILOT_GENERIC, MAV_MODE_MANUAL_DISARMED, 0, MAV_STATE_ACTIVE);
 
         CDC_Try_Send(mavlinkTxBuffer, mavlink_msg_to_send_buffer(mavlinkTxBuffer, &mavlinkMessage), 1);
       }
@@ -89,18 +89,19 @@ void StartSerialTask(void const *argument) {
 //      my_sum += mpu->data.wy;
 //      mz_sum += mpu->data.wz;
 
-      //float time = HAL_GetTick()/1000.0f;
+//      float time = HAL_GetTick()/1000.0f;
 //      size = sprintf((char *) print_buf, "\033[KGx: %f, Gy: %f, Gz: %f, Tim: %f, Tmp: %f\r\n",
 //                     mx_sum/time, my_sum/time, mz_sum/time, time, mpu->data.temp);
 
-//      size = sprintf((char *) print_buf, "\033[KP: %f, Y: %f, C: %d, Kp: %d, Tmp: %f\r\n",
-//                     ahrs->pitch * 180.0f / M_PI, ahrs->yaw * 180.0f / M_PI, chassis->motorLF.angle,
-//                     gimbal->pitch_motor.angle,
+//      size = sprintf((char *) print_buf, "P: %f, Y: %f, R: %f, Mx: %f, My: %f, Mz: %f, Tmp: %f\r\n",
+//                     ahrs->pitch * 180.0f / M_PI, ahrs->yaw * 180.0f / M_PI, ahrs->roll * 180.0f / M_PI,
+//                     mpu->data.mx, mpu->data.my, mpu->data.mz,
 //                     mpu->data.temp);
-//
+//      size = sprintf((char *) print_buf, "%f, %f, %f\r\n",
+//                     mpu->data.wx ,mpu->data.wy ,mpu->data.wz);
 //      CDC_Try_Send(print_buf, size, 1);
       mavlink_msg_attitude_pack(mavlinkSystem.sysid, mavlinkSystem.compid, &mavlinkMessage, HAL_GetTick(),
-                                           ahrs->roll, ahrs->pitch, ahrs->yaw, 0, 0, 0);
+                                ahrs->roll, ahrs->pitch, ahrs->yaw, 0, 0, 0);
 
       CDC_Try_Send(mavlinkTxBuffer, mavlink_msg_to_send_buffer(mavlinkTxBuffer, &mavlinkMessage), 1);
 

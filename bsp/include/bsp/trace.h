@@ -26,6 +26,7 @@ public:
   Trace();
 
   int sendChar(uint32_t port, uint32_t ch);
+
 private:
 
 };

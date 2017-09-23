@@ -21,7 +21,7 @@ void Motor::UpdateSensorData(CanRxMsgTypeDef *message) {
   lastAngle = angle;
   angle = (uint16_t)(message->Data[0] << 8 | message->Data[1]);
   current  = (int16_t)(message->Data[2] << 8 | message->Data[3]);
-  speedRPM = current; //2 moto driver have diff info.
+  speedRPM = current; // This should be implemented in a different way (Two classes)
   targetCurrent = (int16_t)(message->Data[4] << 8 | message->Data[5]) / -5;
   // ptr->hall          = message->Data[6];
   if (angle - lastAngle > 4096)

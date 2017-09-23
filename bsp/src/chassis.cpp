@@ -9,22 +9,35 @@
 
 osThreadId chassisTaskHandle;
 
-Chassis *chassis = new Chassis(can1);
+Chassis *chassis;
 
 Chassis::Chassis(CAN *hcan) :
     motorLF(CAN_MotorLF_ID, hcan),
     motorRF(CAN_MotorRF_ID, hcan),
     motorLB(CAN_MotorLB_ID, hcan),
     motorRB(CAN_MotorRB_ID, hcan),
-    pidLF(1, 0, 0, 0.01), pidRF(1, 0, 0, 0.01), pidLB(1, 0, 0, 0.01), pidRB(1, 0, 0, 0.01)
-{
+    pidLF(1, 0, 0, 0.01), pidRF(1, 0, 0, 0.01), pidLB(1, 0, 0, 0.01), pidRB(1, 0, 0, 0.01) {
+
+}
+
+void Chassis::Run() {
+
+}
+
+void Chassis::Arm() {
+
+}
+
+void Chassis::Disarm() {
 
 }
 
 extern "C" void StartChassisTask(void const *argument) {
-  while(!ahrs->healthy) osDelay(100);
+  while (!ahrs->healthy) osDelay(100);
 
-  for(;;){
-    osDelay(1);
+  chassis = new Chassis(can1);
+
+  for (;;) {
+    osDelay(10);
   }
 }
