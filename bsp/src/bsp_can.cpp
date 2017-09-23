@@ -5,8 +5,8 @@
 #include <stm32f4xx_hal_can.h>
 #include "bsp/bsp_can.h"
 
-CAN *can1 = new CAN(&hcan1);
-CAN *can2 = new CAN(&hcan2);
+CAN *can1;
+CAN *can2;
 
 CanTxMsgTypeDef Tx1Message;
 CanRxMsgTypeDef Rx1Message;
@@ -15,9 +15,17 @@ CanRxMsgTypeDef Rx2Message;
 
 CAN::CAN(CAN_HandleTypeDef *hcan) {
   this->hcan = hcan;
+  this->_mutex = new cpp_freertos::MutexStandard;
+}
+
+CAN::~CAN() {
+  delete _mutex;
 }
 
 int CAN::registerCallback(uint32_t messageID, std::function<void(CanRxMsgTypeDef *)> callback) {
+
+  _mutex->Lock();
+
   if (tableSize < MAX_CAN_CALLBACK) {
     uint32_t prim;
 
@@ -31,20 +39,26 @@ int CAN::registerCallback(uint32_t messageID, std::function<void(CanRxMsgTypeDef
     callbackTable[tableSize] = callback;
     tableSize++;
 
-    if(!prim) __enable_irq();
+    if (!prim) __enable_irq();
 
+    _mutex->Unlock();
     return 0;
   } else {
+    _mutex->Unlock();
     return 1;
   }
 }
 
 void CAN::processFrame(CanRxMsgTypeDef *message) {
+  _mutex->Lock();
+
   for (int i = 0; i < tableSize; i++) {
     if (idTable[i] == message->StdId) {
       callbackTable[i](message);
     }
   }
+
+  _mutex->Unlock();
 }
 
 // extern int messageCount;
@@ -65,8 +79,9 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *_hcan) {
 }
 
 int CAN_Initialize() {
-//  can1 = new CAN(&hcan1);
-//  can2 = new CAN(&hcan2);
+  can1 = new CAN(&hcan1);
+  can2 = new CAN(&hcan2);
+
   CAN_FilterConfTypeDef CAN_FilterConfigStructure;
 
   CAN_FilterConfigStructure.FilterNumber = 0;

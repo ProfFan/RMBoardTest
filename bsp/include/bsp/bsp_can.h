@@ -6,7 +6,6 @@
 #define CHASSIS_BSP_CAN_H
 
 #include "can.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,12 +20,15 @@ int CAN_Initialize();
 #endif
 
 #ifdef __cplusplus
+#include <os/mutex.hpp>
 #include <functional>
 
 class CAN {
 public:
 
   CAN(CAN_HandleTypeDef *hcan);
+
+  ~CAN();
 
   int registerCallback(uint32_t messageID, std::function<void(CanRxMsgTypeDef *)> callback);
 
@@ -41,6 +43,8 @@ private:
   uint32_t idTable[MAX_CAN_CALLBACK];
 
   std::function<void(CanRxMsgTypeDef *)> callbackTable[MAX_CAN_CALLBACK];
+
+  cpp_freertos::MutexStandard* _mutex;
 };
 
 extern CAN *can1;
