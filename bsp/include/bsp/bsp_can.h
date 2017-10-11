@@ -12,7 +12,7 @@ extern "C" {
 
 #define MAX_CAN_CALLBACK 32
 
-int CAN_Initialize();
+void StartCANBusTask(void const *argument);
 // void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *_hcan);
 
 #ifdef __cplusplus

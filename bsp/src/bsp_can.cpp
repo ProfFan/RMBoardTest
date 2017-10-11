@@ -3,7 +3,11 @@
 //
 
 #include <stm32f4xx_hal_can.h>
+#include <cmsis_os.h>
+#include <climits>
 #include "bsp/bsp_can.h"
+
+osThreadId canTaskHandle;
 
 CAN *can1;
 CAN *can2;
@@ -12,6 +16,9 @@ CanTxMsgTypeDef Tx1Message;
 CanRxMsgTypeDef Rx1Message;
 CanTxMsgTypeDef Tx2Message;
 CanRxMsgTypeDef Rx2Message;
+
+BaseType_t xResult;
+uint32_t ulNotifiedValue;
 
 CAN::CAN(CAN_HandleTypeDef *hcan) {
   this->hcan = hcan;
@@ -78,7 +85,7 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *_hcan) {
   __HAL_CAN_ENABLE_IT(&hcan2, CAN_IT_FMP1);
 }
 
-int CAN_Initialize() {
+void StartCANBusTask(void const *argument) {
   can1 = new CAN(&hcan1);
   can2 = new CAN(&hcan2);
 
@@ -96,13 +103,13 @@ int CAN_Initialize() {
   CAN_FilterConfigStructure.FilterActivation = ENABLE;
 
   if (HAL_CAN_ConfigFilter(&hcan1, &CAN_FilterConfigStructure) != HAL_OK) {
-    return 1;
+    return;
   }
 
   CAN_FilterConfigStructure.FilterNumber = 14;
   CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FilterFIFO1;
   if (HAL_CAN_ConfigFilter(&hcan2, &CAN_FilterConfigStructure) != HAL_OK) {
-    return 2;
+    return;
   }
 
   hcan1.pRxMsg = &Rx1Message;
@@ -111,9 +118,23 @@ int CAN_Initialize() {
   hcan2.pRx1Msg = &Rx2Message;
   hcan2.pTxMsg = &Tx2Message;
 
-  if (HAL_CAN_Receive_IT(&hcan1, CAN_FIFO0) != HAL_OK) return 3;
-  if (HAL_CAN_Receive_IT(&hcan2, CAN_FIFO1) != HAL_OK) return 4;
+  if (HAL_CAN_Receive_IT(&hcan1, CAN_FIFO0) != HAL_OK) return;
+  if (HAL_CAN_Receive_IT(&hcan2, CAN_FIFO1) != HAL_OK) return;
 
-  return 0;
+  while (true) {
+    xResult = xTaskNotifyWait(pdFALSE,    /* Don't clear bits on entry. */
+                              ULONG_MAX,        /* Clear all bits on exit. */
+                              &ulNotifiedValue, /* Stores the notified value. */
+                              1000);
+
+    if (xResult == pdPASS) {
+      /* A notification was received.  See which bits were set. */
+
+    } else {
+      /* Did not receive a notification within the expected time. */
+
+    }
+  }
 }
+
 }

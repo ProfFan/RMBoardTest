@@ -74,6 +74,7 @@ extern osThreadId sbusTaskHandle;
 extern osThreadId imuTaskHandle;
 extern osThreadId gimbalTaskHandle;
 extern osThreadId chassisTaskHandle;
+extern osThreadId canTaskHandle;
 
 extern int messageCount;
 /* USER CODE END Variables */
@@ -127,6 +128,9 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(imuTask, StartIMUTask, osPriorityHigh, 0, 512);
   imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
 
+  osThreadDef(canTask, StartCANBusTask, osPriorityHigh, 0, 512);
+  canTaskHandle = osThreadCreate(osThread(canTask), NULL);
+
   osThreadDef(gimbalTask, StartGimbalTask, osPriorityAboveNormal, 0, 512);
   gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
 
@@ -152,7 +156,6 @@ void StartDefaultTask(void const * argument)
   DWT->CYCCNT = 0;
   DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 
-  CAN_Initialize();
   /* Infinite loop */
   for(;;)
   {
