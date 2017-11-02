@@ -34,8 +34,6 @@ public:
 
   void processFrame(CanRxMsgTypeDef *message);
 
-  float current;
-  float angle;
   CAN_HandleTypeDef *hcan;
 
 private:

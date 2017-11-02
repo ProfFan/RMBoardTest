@@ -44,7 +44,7 @@ int CAN::registerCallback(uint32_t messageID, std::function<void(CanRxMsgTypeDef
 
     idTable[tableSize] = messageID;
     callbackTable[tableSize] = callback;
-    tableSize++;
+    tableSize = tableSize + 1;
 
     if (!prim) __enable_irq();
 
@@ -57,15 +57,12 @@ int CAN::registerCallback(uint32_t messageID, std::function<void(CanRxMsgTypeDef
 }
 
 void CAN::processFrame(CanRxMsgTypeDef *message) {
-  _mutex->Lock();
-
   for (int i = 0; i < tableSize; i++) {
     if (idTable[i] == message->StdId) {
       callbackTable[i](message);
     }
   }
-
-  _mutex->Unlock();
+  // HAL_GPIO_TogglePin(GPIOE, GPIO_PIN_7);
 }
 
 // extern int messageCount;
@@ -75,14 +72,30 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef *_hcan) {
 
   if (_hcan == can1->hcan) {
     can1->processFrame(_hcan->pRxMsg);
+
+    __HAL_CAN_ENABLE_IT(can1->hcan, CAN_IT_FMP0);
+    //HAL_CAN_Receive_IT(&hcan1, CAN_FIFO0);
   }
 
   if (_hcan == can2->hcan) {
     can2->processFrame(_hcan->pRx1Msg);
+
+    __HAL_CAN_ENABLE_IT(can2->hcan, CAN_IT_FMP1);
+    //HAL_CAN_Receive_IT(&hcan2, CAN_FIFO1);
+  }
+}
+
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *_hcan) {
+  if (_hcan == can1->hcan) {
+    __HAL_CAN_CLEAR_FLAG(can1->hcan, CAN_FLAG_FOV0);
+    //__HAL_CAN_ENABLE_IT(can1->hcan, CAN_IT_FMP0);
+    HAL_CAN_Receive_IT(&hcan1, CAN_FIFO0);
   }
 
-  __HAL_CAN_ENABLE_IT(&hcan1, CAN_IT_FMP0);
-  __HAL_CAN_ENABLE_IT(&hcan2, CAN_IT_FMP1);
+  if (_hcan == can2->hcan) {
+    __HAL_CAN_CLEAR_FLAG(can2->hcan, CAN_FLAG_FOV1);
+    HAL_CAN_Receive_IT(&hcan2, CAN_FIFO1);
+  }
 }
 
 void StartCANBusTask(void const *argument) {
@@ -103,13 +116,19 @@ void StartCANBusTask(void const *argument) {
   CAN_FilterConfigStructure.FilterActivation = ENABLE;
 
   if (HAL_CAN_ConfigFilter(&hcan1, &CAN_FilterConfigStructure) != HAL_OK) {
-    return;
+    while(1){
+
+    }
   }
+
+  osDelay(10);
 
   CAN_FilterConfigStructure.FilterNumber = 14;
   CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FilterFIFO1;
   if (HAL_CAN_ConfigFilter(&hcan2, &CAN_FilterConfigStructure) != HAL_OK) {
-    return;
+    while(1){
+
+    }
   }
 
   hcan1.pRxMsg = &Rx1Message;
@@ -118,22 +137,43 @@ void StartCANBusTask(void const *argument) {
   hcan2.pRx1Msg = &Rx2Message;
   hcan2.pTxMsg = &Tx2Message;
 
-  if (HAL_CAN_Receive_IT(&hcan1, CAN_FIFO0) != HAL_OK) return;
-  if (HAL_CAN_Receive_IT(&hcan2, CAN_FIFO1) != HAL_OK) return;
+  osDelay(10);
 
-  while (true) {
-    xResult = xTaskNotifyWait(pdFALSE,    /* Don't clear bits on entry. */
-                              ULONG_MAX,        /* Clear all bits on exit. */
-                              &ulNotifiedValue, /* Stores the notified value. */
-                              1000);
-
-    if (xResult == pdPASS) {
-      /* A notification was received.  See which bits were set. */
-
-    } else {
-      /* Did not receive a notification within the expected time. */
+  if (HAL_CAN_Receive_IT(&hcan1, CAN_FIFO0) != HAL_OK) {
+    while (1) {
 
     }
+  }
+  osDelay(10);
+
+  if (HAL_CAN_Receive_IT(&hcan2, CAN_FIFO1) != HAL_OK){
+    while(1){
+
+    }
+  }
+
+  osDelay(10);
+
+  while (true) {
+//    xResult = xTaskNotifyWait(pdFALSE,    /* Don't clear bits on entry. */
+//                              ULONG_MAX,        /* Clear all bits on exit. */
+//                              &ulNotifiedValue, /* Stores the notified value. */
+//                              1000);
+//
+//    if (xResult == pdPASS) {
+//      /* A notification was received.  See which bits were set. */
+//
+//    } else {
+//      /* Did not receive a notification within the expected time. */
+//
+//    }
+    if(HAL_CAN_GetState(&hcan1)==HAL_CAN_STATE_READY){
+      HAL_CAN_Receive_IT(&hcan1, CAN_FIFO0);
+    }
+    if(HAL_CAN_GetState(&hcan2)==HAL_CAN_STATE_READY){
+      HAL_CAN_Receive_IT(&hcan2, CAN_FIFO1);
+    }
+    osDelay(1);
   }
 }
 
