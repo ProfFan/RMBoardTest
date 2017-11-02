@@ -119,7 +119,7 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(beepTask, StartBeepTask, osPriorityNormal, 0, 128);
   beepTaskHandle = osThreadCreate(osThread(beepTask), NULL);
   
-  osThreadDef(serialTask, StartSerialTask, osPriorityNormal, 0, 512);
+  osThreadDef(serialTask, StartSerialTask, osPriorityNormal, 0, 4096);
   serialTaskHandle = osThreadCreate(osThread(serialTask), NULL);
 
   osThreadDef(sbusTask, StartSBUSTask, osPriorityNormal, 0, 256);
