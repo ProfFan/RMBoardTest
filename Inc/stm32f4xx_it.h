@@ -46,7 +46,7 @@
 /* Exported functions ------------------------------------------------------- */
 
 void NMI_Handler(void);
-void HardFault_Handler(void);
+void HardFault_Handler(void) __attribute__((naked));
 void MemManage_Handler(void);
 void BusFault_Handler(void);
 void UsageFault_Handler(void);
@@ -63,7 +63,6 @@ void TIM6_DAC_IRQHandler(void);
 void DMA2_Stream1_IRQHandler(void);
 void DMA2_Stream2_IRQHandler(void);
 void CAN2_TX_IRQHandler(void);
-void CAN2_RX0_IRQHandler(void);
 void CAN2_RX1_IRQHandler(void);
 void OTG_FS_IRQHandler(void);
 void USART6_IRQHandler(void);

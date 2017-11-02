@@ -79,7 +79,27 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+  __asm volatile
+  (
+      " tst lr, #4                                                \n"
+      " ite eq                                                    \n"
+      " mrseq r0, msp                                             \n"
+      " mrsne r0, psp                                             \n"
+      " mov sp, r0                                         \n"
+          " bkpt #1                          \n"
+  );
+//  __asm volatile
+//  (
+//      " mrs r0, psp                                             \n"
+//      " mov sp, r0                                         \n"
+//      " bkpt #1                          \n"
+//  );
+//  __asm volatile
+//  (
+//  "mrs r0, psp\n"
+//  "ldr r2, [r0, #24] \n"
+//  "mov lr, r2 \n"
+//  );
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -332,20 +352,6 @@ void CAN2_TX_IRQHandler(void)
   /* USER CODE BEGIN CAN2_TX_IRQn 1 */
 
   /* USER CODE END CAN2_TX_IRQn 1 */
-}
-
-/**
-* @brief This function handles CAN2 RX0 interrupts.
-*/
-void CAN2_RX0_IRQHandler(void)
-{
-  /* USER CODE BEGIN CAN2_RX0_IRQn 0 */
-
-  /* USER CODE END CAN2_RX0_IRQn 0 */
-  HAL_CAN_IRQHandler(&hcan2);
-  /* USER CODE BEGIN CAN2_RX0_IRQn 1 */
-
-  /* USER CODE END CAN2_RX0_IRQn 1 */
 }
 
 /**
