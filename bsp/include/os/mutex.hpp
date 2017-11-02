@@ -161,6 +161,21 @@ class Mutex {
         virtual bool Unlock() = 0;
 
         /**
+         *  Lock the Mutex from ISR.
+         *
+         *  @return true if the Lock was acquired, false if it timed out.
+         */
+        virtual bool LockFromISR() = 0;
+
+        /**
+          *  Unlock the Mutex from ISR.
+          *
+          *  @return true if the Lock was released, false if it failed. (Hint,
+          *           if it fails, did you call Lock() first?)
+          */
+        virtual bool UnlockFromISR() = 0;
+
+        /**
          *  Our destructor
          */
         virtual ~Mutex();
@@ -217,6 +232,21 @@ class MutexStandard : public Mutex {
          *  @return true if the Lock was acquired, false if it timed out.
          */
         virtual bool Lock(TickType_t Timeout = portMAX_DELAY);
+
+        /**
+         *  Lock the Mutex from ISR.
+         *
+         *  @return true if the Lock was acquired, false if it timed out.
+         */
+         virtual bool LockFromISR();
+
+        /**
+         *  Unlock the Mutex from ISR.
+         *
+         *  @return true if the Lock was released, false if it failed. (Hint,
+         *           if it fails, did you call Lock() first?)
+         */
+         virtual bool UnlockFromISR();
 
         /**
          *  Unlock the Mutex.

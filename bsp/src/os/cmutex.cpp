@@ -103,6 +103,15 @@ bool MutexStandard::Lock(TickType_t Timeout)
     return success == pdTRUE ? true : false;
 }
 
+bool MutexStandard::LockFromISR()
+{
+    BaseType_t xTaskWokenByTaking = pdFALSE;
+    BaseType_t success = xSemaphoreTakeFromISR(handle, &xTaskWokenByTaking);
+
+    portYIELD_FROM_ISR(xTaskWokenByTaking);
+
+    return success == pdTRUE ? true : false;
+}
 
 bool MutexStandard::Unlock()
 {
@@ -110,6 +119,15 @@ bool MutexStandard::Unlock()
     return success == pdTRUE ? true : false;
 }
 
+bool MutexStandard::UnlockFromISR()
+{
+    BaseType_t xTaskWokenByGiving = pdFALSE;
+    BaseType_t success = xSemaphoreGiveFromISR(handle, &xTaskWokenByGiving);
+
+    portYIELD_FROM_ISR(xTaskWokenByGiving);
+
+    return success == pdTRUE ? true : false;
+}
 
 #if (configUSE_RECURSIVE_MUTEXES == 1)
 
