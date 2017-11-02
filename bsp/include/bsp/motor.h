@@ -11,10 +11,10 @@
 #define CAN_POKE_FEEDBACK_ID        0x207
 #define CAN_ZGYRO_RST_ID            0x404
 #define CAN_ZGYRO_FEEDBACK_MSG_ID   0x401
-#define CAN_MotorLF_ID              0x041  //左前
-#define CAN_MotorRF_ID              0x042  //右前
-#define CAN_MotorLB_ID              0x043  //左后
-#define CAN_MotorRB_ID              0x044  //右后
+#define CAN_MotorLF_ID              0x201  //左前
+#define CAN_MotorRF_ID              0x202  //右前
+#define CAN_MotorLB_ID              0x203  //左后
+#define CAN_MotorRB_ID              0x204  //右后
 #define CAN_4Moto_Target_Speed_ID   0x046  //
 #define CAN_GyroRecev_ID            0x011  //陀螺仪接收
 #define CAN_GyroReset_ID            0x012  //陀螺仪复位
