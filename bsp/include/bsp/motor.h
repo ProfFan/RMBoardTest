@@ -43,6 +43,7 @@ extern "C" {
 
 #ifdef __cplusplus
 
+#include <std_msgs/Float32.h>
 #include "bsp/bsp_can.h"
 
 class Motor {
@@ -52,14 +53,14 @@ public:
 
   void UpdateSensorData(CanRxMsgTypeDef *message);
 
-  int current;
-  int speedRPM;
-  int angle;
-  int lastAngle;
-  int targetCurrent;
-  long round;
-  long totalAngle;
-  int offsetAngle;
+  int current = 0;
+  int speedRPM = 0;
+  int angle = 0;
+  int lastAngle = 0;
+  int targetCurrent = 0;
+  long round = 0;
+  long totalAngle = 0;
+  int offsetAngle = 0;
 private:
   uint32_t canID;
   CAN* bus;

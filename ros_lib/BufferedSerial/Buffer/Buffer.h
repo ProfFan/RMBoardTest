@@ -79,7 +79,7 @@ public:
   /** Create a Buffer and allocate memory for it
    *  @param size The size of the buffer
    */
-  Buffer(uint32_t size = 0x100);
+  Buffer(uint32_t size = 0x200);
 
   /** Get the size of the ring buffer
    * @return the size of the ring buffer

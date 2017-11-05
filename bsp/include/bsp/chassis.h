@@ -7,6 +7,7 @@
 
 #include "bsp/pid.h"
 #include "bsp/motor.h"
+#include "bsp/sbus.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,15 +26,9 @@ void StartChassisTask(void const *argument);
 class Chassis {
 public:
 
-  Chassis(CAN *hcan);
+  explicit Chassis(CAN *hcan);
 
-  float pitch_encoder = 0;
-  float pitch_encoder_offset = 0;
-
-  float yaw_encoder = 0;
-  float yaw_encoder_offset = 0;
-
-  void Run();
+  void Run(float lf, float rf, float lb, float rb);
 
   void Arm();
 
@@ -41,11 +36,10 @@ public:
 
   Motor motorLF, motorRF, motorLB, motorRB;
 
+  CAN* hcan;
 private:
   bool armed;
   PID pidLF, pidRF, pidLB, pidRB;
-
-  CAN* hcan;
 };
 
 extern Chassis *chassis;
