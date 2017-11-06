@@ -168,6 +168,7 @@ void StartCANBusTask(void const *argument) {
 //
 //    }
     if(HAL_CAN_GetState(&hcan1)==HAL_CAN_STATE_READY){
+      can1->errorCount += 1;
       HAL_CAN_Receive_IT(&hcan1, CAN_FIFO0);
     }
     if(HAL_CAN_GetState(&hcan2)==HAL_CAN_STATE_READY){

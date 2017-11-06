@@ -36,6 +36,8 @@ public:
 
   CAN_HandleTypeDef *hcan;
 
+  int32_t errorCount = 0;
+
 private:
   int tableSize = 0;
   uint32_t idTable[MAX_CAN_CALLBACK];

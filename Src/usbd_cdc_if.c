@@ -76,8 +76,8 @@
 /* USER CODE BEGIN PRIVATE_DEFINES */
 /* Define size for the receive and transmit buffer over CDC */
 /* It's up to user to redefine and/or remove those define */
-#define APP_RX_DATA_SIZE  64
-#define APP_TX_DATA_SIZE  64
+#define APP_RX_DATA_SIZE  4096
+#define APP_TX_DATA_SIZE  4096
 /* USER CODE END PRIVATE_DEFINES */
 /**
   * @}
@@ -257,7 +257,7 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
   *           
   *         @note
   *         This function will block any OUT packet reception on USB endpoint 
-  *         untill exiting this function. If you exit this function before transfer
+  *         until exiting this function. If you exit this function before transfer
   *         is complete on CDC interface (ie. using DMA controller) it will result 
   *         in receiving more data while previous ones are still not sent.
   *                 
@@ -268,8 +268,9 @@ static int8_t CDC_Control_FS  (uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS (uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   CDC_Receive_Hook(&hUsbDeviceFS, Buf, Len);
+
+  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
   /* USER CODE END 6 */ 

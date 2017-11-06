@@ -33,7 +33,10 @@ Note_t currNote;
 
 uint8_t print_buf[256];
 
-uint8_t usbTxBuf[1024];
+uint8_t usbTxBuf[8192];
+
+uint8_t usbRxBuf[256];
+uint32_t usbRxLen = 0;
 
 USBSerial *USBSerial1;
 
@@ -64,13 +67,13 @@ void StartSerialTask(void const *argument) {
 
   ros::NodeHandle nh;
 
-  auto *str_msg = new std_msgs::String();
+  // auto *str_msg = new std_msgs::String();
   auto *encLF_msg = new std_msgs::Int32();
   auto *encLB_msg = new std_msgs::Int32();
   auto *encRF_msg = new std_msgs::Int32();
   auto *encRB_msg = new std_msgs::Int32();
 
-  auto chatter = new ros::Publisher("chatter", str_msg);
+  // auto chatter = new ros::Publisher("chatter", str_msg);
   auto pub_encLF = new ros::Publisher("encoder/lf", encLF_msg);
   auto pub_encLB = new ros::Publisher("encoder/lb", encLB_msg);
   auto pub_encRF = new ros::Publisher("encoder/rf", encRF_msg);
@@ -81,8 +84,11 @@ void StartSerialTask(void const *argument) {
   auto sub_curRF = new ros::Subscriber<std_msgs::Int32>("current/rf", CURRENT_CALLBACK(motorRF));
   auto sub_curRB = new ros::Subscriber<std_msgs::Int32>("current/rb", CURRENT_CALLBACK(motorRB));
 
+  auto canError_msg = new std_msgs::Int32();
+  auto pub_canError = new ros::Publisher("can/error", canError_msg);
 
-  char hello[15] = "UAVLab Rover!";
+
+  // char hello[15] = "UAVLab Rover!";
 
   nh.initNode();
   //nh.advertise(*chatter);
@@ -93,8 +99,10 @@ void StartSerialTask(void const *argument) {
 
   nh.subscribe(*sub_curLF);
   nh.subscribe(*sub_curLB);
-//  nh.subscribe(*sub_curRF);
-//  nh.subscribe(*sub_curRB);
+  nh.subscribe(*sub_curRF);
+  nh.subscribe(*sub_curRB);
+
+  nh.advertise(*pub_canError);
 
   while (!nh.connected()){
     nh.spinOnce();
@@ -103,7 +111,7 @@ void StartSerialTask(void const *argument) {
 
 
   portTickType xLastWakeTime;
-  const portTickType xFrequency = 2;
+  const portTickType xFrequency = 1;
 
   xLastWakeTime = xTaskGetTickCount();
 
@@ -114,18 +122,29 @@ void StartSerialTask(void const *argument) {
     //chatter->publish(str_msg);
 
     // AHRS Attitude
-    if ((ahrs->healthy) && (nh.connected())) {
-      encLF_msg->data = chassis->motorLF.angle;
-      pub_encLF->publish(encLF_msg);
-      encLB_msg->data = chassis->motorLB.angle;
-      pub_encLB->publish(encLB_msg);
-      encRF_msg->data = chassis->motorRF.angle;
-      pub_encRF->publish(encRF_msg);
-      encRB_msg->data = chassis->motorRB.angle;
-      pub_encRB->publish(encRB_msg);
+    if (HAL_GetTick() % 2) {
+
+      if ((ahrs->healthy) && (nh.connected())) {
+        encLF_msg->data = chassis->motorLF.angle;
+        pub_encLF->publish(encLF_msg);
+        encLB_msg->data = chassis->motorLB.angle;
+        pub_encLB->publish(encLB_msg);
+        encRF_msg->data = chassis->motorRF.angle;
+        pub_encRF->publish(encRF_msg);
+        encRB_msg->data = chassis->motorRB.angle;
+        pub_encRB->publish(encRB_msg);
+      }
+
+      canError_msg->data = can1->errorCount;
+      pub_canError->publish(canError_msg);
+
+      nh.spinOnce();
     }
 
-    nh.spinOnce();
+//    if(usbRxLen > 0){
+//      USBSerial1->rxISR(usbRxBuf,usbRxLen);
+//      usbRxLen = 0;
+//    }
 
     USBSerial1->txService();
 
@@ -140,6 +159,8 @@ extern "C" void CDC_Receive_Hook(USBD_HandleTypeDef *husb, uint8_t *pbuf, uint32
     USBSerial1->rxISR(pbuf, *Len);
   };
 
+//  std::memcpy(usbRxBuf, pbuf, *Len);
+//  usbRxLen = *Len;
 }
 
 int USBSerial::write(const uint8_t *buffer, int length) {
@@ -159,11 +180,19 @@ int USBSerial::read(uint8_t *buffer, int length) {
   return -1;
 }
 
+char USBSerial::read() {
+  if ((int) (this->rxBuffer.available()) >= 1) {
+    return this->rxBuffer.get();
+  }
+
+  return 0;
+}
+
 int USBSerial::readable() {
   return this->rxBuffer.available();
 }
 
-void USBSerial::rxISR(const uint8_t *buffer, int length) {
+void USBSerial::rxISR(const uint8_t *buffer, uint32_t length) {
   for (int i = 0; i < length; i++) {
     this->rxBuffer.put(buffer[i]);
   }

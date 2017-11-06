@@ -30,12 +30,10 @@ class STM32Hardware {
     int read(){
       uint8_t chr;
       if(USBSerial1->readable()){
-        USBSerial1->read(&chr, 1);
+        return USBSerial1->read();
       } else {
         return -1;
       }
-
-      return chr;
     };
 
     void write(uint8_t* data, int length) {

@@ -31,7 +31,7 @@ public:
 
 class USBSerial: public Serial {
 public:
-  USBSerial(USBD_HandleTypeDef *_hcdc): rxBuffer(500), txBuffer(500){
+  explicit USBSerial(USBD_HandleTypeDef *_hcdc): rxBuffer(4096), txBuffer(4096){
     hcdc = _hcdc;
   }
 
@@ -41,9 +41,11 @@ public:
 
   int read(uint8_t *buffer, int length) override;
 
+  char read();
+
   int readable() override;
 
-  void rxISR(const uint8_t *buffer, int length);
+  void rxISR(const uint8_t *buffer, uint32_t length);
 
   void txService();
 private:
