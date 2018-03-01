@@ -193,7 +193,7 @@ int USBSerial::readable() {
 }
 
 void USBSerial::rxISR(const uint8_t *buffer, uint32_t length) {
-  for (int i = 0; i < length; i++) {
+  for (uint32_t i = 0; i < length; i++) {
     this->rxBuffer.put(buffer[i]);
   }
 }

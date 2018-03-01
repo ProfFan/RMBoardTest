@@ -28,7 +28,7 @@ class STM32Hardware {
     }
 
     int read(){
-      uint8_t chr;
+      //uint8_t chr;
       if(USBSerial1->readable()){
         return USBSerial1->read();
       } else {

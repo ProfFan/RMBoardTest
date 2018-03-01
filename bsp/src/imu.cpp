@@ -170,7 +170,7 @@ void AHRS::MahonyAHRSUpdate(float gx, float gy, float gz,
   float dt = (float) (ahrs->currentUpdate - ahrs->lastUpdate) / SystemCoreClock;
   float q0 = q[0], q1 = q[1], q2 = q[2], q3 = q[3];   // short name local variable for readability
 
-  beta = sqrt(3.0f / 4.0f) * M_PI * (1.0f / 180.0f) * (HAL_GetTick() < 100000) ? 60.0f : 1.0f;
+  beta = sqrt(3.0f / 4.0f) * M_PI * (1.0f / 180.0f) * ((HAL_GetTick() < 100000) ? 60.0f : 1.0f);
 
   // Calculate general spin rate (rad/s)
   const float spin_rate = sqrtf(sq(gx) + sq(gy) + sq(gz));
@@ -243,7 +243,7 @@ void AHRS::MahonyAHRSUpdate(float gx, float gy, float gz,
   }
 
   // Calculate kP gain. If we are acquiring initial attitude (not armed and within 20 sec from powerup) scale the kP to converge faster
-  const float dcmKpGain = dcm_kp * (HAL_GetTick() < 10000) ? 10.0f : 1.0f;
+  const float dcmKpGain = dcm_kp * ((HAL_GetTick() < 10000) ? 10.0f : 1.0f);
 
   // Apply proportional and integral feedback
   gx += dcmKpGain * ex + integralFBx;
